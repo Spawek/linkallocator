@@ -91,5 +91,63 @@ namespace LinkAllocatorTests
             Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").path[0].source);
             Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L2").path[0].destination);
         }
+
+        [TestMethod]
+        public void SimpleSlotFind()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+
+            t.AddConnection("D1", "D2", 10);
+
+            t.AddLink("L1", "D1", "D2", 10);
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+
+            Assert.AreEqual(1, t.GetLink("L1").path.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(1, t.connections[0].slots.Count);
+            Assert.AreEqual(t.GetLink("L1"), t.connections[0].slots[0].slotOWner);
+        }
+
+        [TestMethod]
+        public void Find8SlotsSameSize()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+
+            t.AddConnection("D1", "D2", 80);
+
+            t.AddLink("L1", "D1", "D2", 10);
+            t.AddLink("L2", "D1", "D2", 10);
+            t.AddLink("L3", "D1", "D2", 10);
+            t.AddLink("L4", "D1", "D2", 10);
+            t.AddLink("L5", "D1", "D2", 10);
+            t.AddLink("L6", "D1", "D2", 10);
+            t.AddLink("L7", "D1", "D2", 10);
+            t.AddLink("L8", "D1", "D2", 10);
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+
+            Assert.AreEqual(1, t.GetLink("L1").path.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(8, t.connections[0].slots.Count);
+            Assert.AreEqual(t.GetLink("L1"), t.connections[0].slots[0].slotOWner);
+            Assert.AreEqual(t.GetLink("L2"), t.connections[0].slots[1].slotOWner);
+            Assert.AreEqual(t.GetLink("L3"), t.connections[0].slots[2].slotOWner);
+            Assert.AreEqual(t.GetLink("L4"), t.connections[0].slots[3].slotOWner);
+            Assert.AreEqual(t.GetLink("L5"), t.connections[0].slots[4].slotOWner);
+            Assert.AreEqual(t.GetLink("L6"), t.connections[0].slots[5].slotOWner);
+            Assert.AreEqual(t.GetLink("L7"), t.connections[0].slots[6].slotOWner);
+            Assert.AreEqual(t.GetLink("L8"), t.connections[0].slots[7].slotOWner);
+        }
     }
 }

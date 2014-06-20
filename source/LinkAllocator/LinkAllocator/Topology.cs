@@ -125,7 +125,31 @@ namespace LinkAllocator
         /// </summary>
         public void AllocateSlots()
         {
+            connections.ForEach(x => x.CreateSlots());
+            links.ForEach(x => x.FindAvailableSlotSets());
 
+            TryAllocateLinks(links);
+        }
+
+        private bool TryAllocateLinks(List<Link> links)
+        {
+            if (links.Count == 0)
+                return true;
+
+            Link currLink = links[0];
+
+            foreach(List<int> slotSet in currLink.availableSlotSets)
+            {
+                if (currLink.TryAllocateSlotSet(slotSet))
+                {
+                    if (TryAllocateLinks(links.GetRange(1, links.Count - 1)))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

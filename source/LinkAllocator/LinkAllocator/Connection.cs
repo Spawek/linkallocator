@@ -46,7 +46,7 @@ namespace LinkAllocator
             }
             currCapacity += link.capacityNeeded;
         }
-        public bool CanAllocateSlot(Link link, int slotNo)
+        public bool CanAllocateSlot(int slotNo)
         {
             return slots[slotNo].state == Slot.State.FREE;
         }
@@ -81,6 +81,11 @@ namespace LinkAllocator
 
             int slotsNumbers = maxCapacity / maxNeededCapacity;
 
+            if(allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
+            {
+                throw new ApplicationException("Correct slots number cannot be calculated");
+            }
+
             slots = new List<Slot>();
             for (int i = 0; i < slotsNumbers; i++)
             {
@@ -89,6 +94,7 @@ namespace LinkAllocator
         }
 
         private int currCapacity;
-        private readonly int maxCapacity;
+        public readonly int maxCapacity;
+        public int CapacityPerSlot { get { return maxCapacity / slots.Count(); } }
     }
 }
