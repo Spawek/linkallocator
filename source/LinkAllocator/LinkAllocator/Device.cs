@@ -6,19 +6,28 @@ using System.Threading.Tasks;
 
 namespace LinkAllocator
 {
-    class Device
+    public class Device
     {
         public string name;
-        public List<Connection> connections = new List<Connection>();
+        public List<Connection> outgoingConnections = new List<Connection>();
+        public List<Connection> incomingConnections = new List<Connection>();
+        public int mark = 0; //needed for path finding
         
         public Device(string _name)
         {
             name = _name;
         }
 
-        public void AddConnection(Device dev, int slotsNo)
+        public void AddConnection(Device dev, int capacity)
         {
-            connections.Add(new Connection(this, dev, slotsNo));
+            Connection c = new Connection(this, dev, capacity);
+            outgoingConnections.Add(c);
+            dev.incomingConnections.Add(c);
+        }
+
+        public override string ToString()
+        {
+            return name;
         }
     }
 }

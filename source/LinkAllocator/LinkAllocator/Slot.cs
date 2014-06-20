@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace LinkAllocator
 {
-    class Slot
+    public class Slot
     {
-        State state;
-        Link slotOWner = null;
+        public State state;
+        public Link slotOWner = null;
 
         public enum State
         {

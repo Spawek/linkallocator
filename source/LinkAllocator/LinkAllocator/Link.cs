@@ -6,19 +6,25 @@ using System.Threading.Tasks;
 
 namespace LinkAllocator
 {
-    class Link
+    public class Link
     {
         public string name; //channel?
         public Device src;
         public Device dst;
-        public int slotsNeeded;
+        public int capacityNeeded;
+        public List<Connection> path = new List<Connection>(); 
 
-        public Link(string _name, Device _src, Device _dst, int _slotsNeeded)
+        public Link(string _name, Device _src, Device _dst, int _capacityNeeded)
         {
             name = _name;
             src = _src;
             dst = _dst;
-            slotsNeeded = _slotsNeeded;
+            capacityNeeded = _capacityNeeded;
+        }
+
+        public override string ToString()
+        {
+            return name;
         }
     }
 }
