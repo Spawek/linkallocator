@@ -25,7 +25,7 @@ namespace LinkAllocator
         {
             return currCapacity >= link.capacityNeeded;
         }
-        public void AllocateLink(Link link)
+        public void AllocatePath(Link link)
         {
             if(currCapacity < link.capacityNeeded)
             {
@@ -38,7 +38,7 @@ namespace LinkAllocator
             allocatedLinks.Add(link);
             currCapacity -= link.capacityNeeded;
         }
-        public void DeallocateLink(Link link)
+        public void DeallocatePath(Link link)
         {
             if (!allocatedLinks.Remove(link))
             {
@@ -46,7 +46,47 @@ namespace LinkAllocator
             }
             currCapacity += link.capacityNeeded;
         }
+        public bool CanAllocateSlot(Link link, int slotNo)
+        {
+            return slots[slotNo].state == Slot.State.FREE;
+        }
+        public void AllocateSlot(Link link, int slotNo)
+        {
+            if (slots[slotNo].state != Slot.State.FREE)
+            {
+                throw new ApplicationException("cannot allocate taken slot");
+            }
+
+            slots[slotNo].state = Slot.State.TAKEN;
+            slots[slotNo].slotOWner = link;
+        }
+        public void DeallocateSlot(int slotNo)
+        {
+            if (slots[slotNo].state == Slot.State.TAKEN)
+            {
+                throw new ApplicationException("cannot deallocate not taken slot");
+            }
+            slots[slotNo].state = Slot.State.FREE;
+            slots[slotNo].slotOWner = null;
+        }
         public int FreeSlots { get { return slots.Count(x => x.state == Slot.State.FREE); } }
+        public void CreateSlots()
+        {
+            int maxNeededCapacity = allocatedLinks.Max(x => x.capacityNeeded);
+
+            if(maxCapacity % maxNeededCapacity != 0)
+            {
+                throw new ApplicationException("Cannot calculate slots number");
+            }
+
+            int slotsNumbers = maxCapacity / maxNeededCapacity;
+
+            slots = new List<Slot>();
+            for (int i = 0; i < slotsNumbers; i++)
+            {
+                slots.Add(new Slot(Slot.State.FREE));
+            }
+        }
 
         private int currCapacity;
         private readonly int maxCapacity;

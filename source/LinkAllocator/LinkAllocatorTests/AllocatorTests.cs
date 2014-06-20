@@ -14,7 +14,7 @@ namespace LinkAllocatorTests
             t.AddDevice("D1");
             t.AddDevice("D2");
 
-            t.AddConnection("D1", "D2", 80);
+            t.AddConnection("D1", "D2", 10);
 
             t.AddLink("L1", "D1", "D2", 10);
         }
@@ -27,7 +27,7 @@ namespace LinkAllocatorTests
             t.AddDevice("D1");
             t.AddDevice("D2");
 
-            t.AddConnection("D1", "D2", 80);
+            t.AddConnection("D1", "D2", 10);
 
             t.AddLink("L1", "D1", "D2", 10);
 
@@ -68,6 +68,28 @@ namespace LinkAllocatorTests
             Assert.AreEqual(t.GetDevice("D3"), t.GetLink("L2").path[0].destination);
             Assert.AreEqual(t.GetDevice("D3"), t.GetLink("L2").path[1].source);
             Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").path[1].destination);
+        }
+
+        public void TwoWayPathFind()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+
+            t.AddConnection("D1", "D2", 10);
+            t.AddConnection("D1", "D2", 10);
+
+            t.AddLink("L1", "D1", "D2", 10);
+            t.AddLink("L2", "D2", "D1", 10);
+
+            Assert.AreEqual(1, t.GetLink("L1").path.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+
+            Assert.AreEqual(1, t.GetLink("L2").path.Count);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").path[0].source);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L2").path[0].destination);
         }
     }
 }
