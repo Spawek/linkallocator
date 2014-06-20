@@ -18,13 +18,6 @@ namespace LinkAllocator
             name = _name;
         }
 
-        public void AddConnection(Device dev, int capacity)
-        {
-            Connection c = new Connection(this, dev, capacity);
-            outgoingConnections.Add(c);
-            dev.incomingConnections.Add(c);
-        }
-
         public override string ToString()
         {
             return name;

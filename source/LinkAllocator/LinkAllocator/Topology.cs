@@ -10,6 +10,7 @@ namespace LinkAllocator
     {
         public List<Device> devices = new List<Device>();
         public List<Link> links = new List<Link>();
+        public List<Connection> connections = new List<Connection>();
 
         public Device GetDevice(string name)
         {
@@ -40,7 +41,14 @@ namespace LinkAllocator
 
         public void AddConnection(string dev1, string dev2, int capacity)
         {
-            GetDevice(dev1).AddConnection(GetDevice(dev2), capacity);
+            Device d1 = GetDevice(dev1);
+            Device d2 = GetDevice(dev2);
+
+            Connection c = new Connection(d1, d2, capacity);
+            connections.Add(c);
+
+            d1.outgoingConnections.Add(c);
+            d2.incomingConnections.Add(c);
         }
 
         public void AddLink(string name, string dev1, string dev2, int capacityNeeded)
