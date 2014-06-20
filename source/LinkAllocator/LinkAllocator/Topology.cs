@@ -14,7 +14,7 @@ namespace LinkAllocator
 
         public Device GetDevice(string name)
         {
-            var devs = devices.FindAll(x => x.name == name);
+            List<Device> devs = devices.FindAll(x => x.name == name);
             if(devs.Count != 1)
             {
                 throw new ApplicationException("topology (devies) broken");
@@ -25,7 +25,7 @@ namespace LinkAllocator
 
         public Link GetLink(string name)
         {
-            var l = links.FindAll(x => x.name == name);
+            List<Link> l = links.FindAll(x => x.name == name);
             if(l.Count != 1)
             {
                 throw new ApplicationException("topology (links) broken");
@@ -34,17 +34,28 @@ namespace LinkAllocator
             return l[0];
         }
 
+        public Connection GetConnection(string name)
+        {
+            List<Connection> c = connections.FindAll(x => x.name == name);
+            if (c.Count != 1)
+            {
+                throw new ApplicationException("topology (connections) broken");
+            }
+
+            return c[0];
+        }
+
         public void AddDevice(string name)
         {
             devices.Add(new Device(name));
         }
 
-        public void AddConnection(string dev1, string dev2, int capacity)
+        public void AddConnection(string name, string dev1, string dev2, int capacity)
         {
             Device d1 = GetDevice(dev1);
             Device d2 = GetDevice(dev2);
 
-            Connection c = new Connection(d1, d2, capacity);
+            Connection c = new Connection(name, d1, d2, capacity);
             connections.Add(c);
 
             d1.outgoingConnections.Add(c);
@@ -146,6 +157,7 @@ namespace LinkAllocator
                     {
                         return true;
                     }
+                    currLink.DeallocateSlotSet(slotSet); //test it!
                 }
             }
 
