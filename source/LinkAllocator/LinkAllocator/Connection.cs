@@ -9,14 +9,16 @@ namespace LinkAllocator
     /* one way connection */
     public class Connection
     {
-        public Connection(Device _src, Device _dst, int _capacity)
+        public Connection(string _name, Device _src, Device _dst, int _capacity)
         {
+            name = _name;
             source = _src;
             destination = _dst;
             currCapacity = _capacity;
             maxCapacity = _capacity;
         }
 
+        public string name;
         public Device source;
         public Device destination;
         public List<Slot> slots = null;
@@ -96,5 +98,10 @@ namespace LinkAllocator
         private int currCapacity;
         public readonly int maxCapacity;
         public int CapacityPerSlot { get { return maxCapacity / slots.Count(); } }
+
+        public override string ToString()
+        {
+            return name;
+        }
     }
 }
