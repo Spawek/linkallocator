@@ -48,6 +48,13 @@ namespace LinkAllocator
             }
             currCapacity += link.capacityNeeded;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="link"></param>
+        /// <param name="linkBeginPos"></param>
+        /// <returns>EMPTY LIST MEANS IMPOSSIBLE - BUGFIX</returns>
         public List<int> GetNeededSlotsForLinkAndBeginPosition(Link link, int linkBeginPos)
         {
             int beginPos = -1;
@@ -59,8 +66,17 @@ namespace LinkAllocator
             {
                 beginPos = linkBeginPos / (link.maxCapacityOnPath / maxCapacity);
             }
+
             int firstSlot = beginPos / CapacityPerSlot;
             int noOfSlotsNeeded = link.capacityNeeded / CapacityPerSlot;
+
+            /// BUGFIX: it can return slots that not exists when there are more than 1 slots needed and
+            ///      it tries to allocated on last slot (coz before ones failed)
+            if (firstSlot + noOfSlotsNeeded > slots.Count)
+            {
+                return new List<int>();
+            }
+
             List<int> neededSlots = Enumerable.Range(firstSlot, noOfSlotsNeeded).ToList();
 
             return neededSlots;
@@ -68,6 +84,8 @@ namespace LinkAllocator
         public bool CanAllocateSlot(Link link, int linkBeginPos)
         {
             List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, linkBeginPos);
+
+            if (neededSlots.Count == 0) return false; //BUGFIX
 
             return CanAllocateSlots(neededSlots);
         }
