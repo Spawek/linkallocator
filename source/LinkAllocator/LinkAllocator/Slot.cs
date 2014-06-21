@@ -20,5 +20,12 @@ namespace LinkAllocator
         {
             state = _state;
         }
+
+        public override string ToString()
+        {
+            string ownerString = slotOWner != null ? " : " + slotOWner.ToString() : String.Empty;
+
+            return state.ToString() + ownerString;
+        }
     }
 }

@@ -107,14 +107,14 @@ namespace LinkAllocator
         public int FreeSlots { get { return slots.Count(x => x.state == Slot.State.FREE); } }
         public void CreateSlots()
         {
-            int maxNeededCapacity = allocatedLinks.Max(x => x.capacityNeeded);
+            int minNeededCapacity = allocatedLinks.Min(x => x.capacityNeeded);
 
-            if(maxCapacity % maxNeededCapacity != 0)
+            if(maxCapacity % minNeededCapacity != 0)
             {
                 throw new ApplicationException("Cannot calculate slots number");
             }
 
-            int slotsNumbers = maxCapacity / maxNeededCapacity;
+            int slotsNumbers = maxCapacity / minNeededCapacity;
 
             if(allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
             {
