@@ -171,7 +171,7 @@ namespace LinkAllocator
 
             if (link.dst.mark == NOT_SEEN)
             {
-                throw new ApplicationException("dst is not found");
+                throw new ApplicationException("Path allocation algirithm cannot allocate a link: " + link.name);
             }
         }
 
@@ -183,7 +183,10 @@ namespace LinkAllocator
             connections.ForEach(x => x.CreateSlots());
             links.ForEach(x => x.FindAvailableSlotSets()); //TODO: sort by linkCapacity
 
-            TryAllocateLinks(links);
+            if (!TryAllocateLinks(links))
+            {
+                throw new ApplicationException("Cannot allocate slots!");
+            }
         }
 
         private bool TryAllocateLinks(List<Link> links)

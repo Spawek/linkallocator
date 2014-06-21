@@ -64,7 +64,7 @@ namespace LinkAllocator
         }
         public void DeallocateSlot(int slotNo)
         {
-            if (slots[slotNo].state == Slot.State.TAKEN)
+            if (slots[slotNo].state != Slot.State.TAKEN)
             {
                 throw new ApplicationException("cannot deallocate not taken slot");
             }
