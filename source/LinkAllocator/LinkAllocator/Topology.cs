@@ -47,11 +47,34 @@ namespace LinkAllocator
 
         public void AddDevice(string name)
         {
+            if (devices.Any(x=> x.name == name))
+            {
+                throw new ApplicationException("there cannot be 2 devices with the same name");
+            }
+
             devices.Add(new Device(name));
         }
 
+        /// <summary>
+        /// NOTE: for now there is an assumption that there can be only one connecton (in same direction) between 2 devices
+        /// (can be fixed in future, but BFS algorithm will need to mark connections instead devices)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dev1"></param>
+        /// <param name="dev2"></param>
+        /// <param name="capacity"></param>
         public void AddConnection(string name, string dev1, string dev2, int capacity)
         {
+            if (connections.Any(x => x.source.name == dev1 && x.destination.name == dev2))
+            {
+                throw new ApplicationException("there cannnot be 2 connections in same direction between 2 devices");
+            }
+
+            if (connections.Any(x => x.name == name))
+            {
+                throw new ApplicationException("there cannot be 2 connection with the sane name");
+            }
+
             Device d1 = GetDevice(dev1);
             Device d2 = GetDevice(dev2);
 
@@ -64,11 +87,32 @@ namespace LinkAllocator
 
         public void AddLink(string name, string dev1, string dev2, int capacityNeeded)
         {
+            if(links.Any(x=>x.name == name))
+            {
+                throw new ApplicationException("there cannot be 2 links with the same name");
+            }
+
             links.Add(new Link(name, GetDevice(dev1), GetDevice(dev2), capacityNeeded));
+        }
+
+
+        /// <summary>
+        /// Comparation in decreasing order of capacity needed and then in dst.name order.
+        /// </summary>
+        /// <param name="lhs"></param>
+        /// <param name="rhs"></param>
+        /// <returns></returns>
+        public int LinkCmp(Link lhs, Link rhs)
+        {
+            if (lhs.capacityNeeded > rhs.capacityNeeded) return -1;
+            if (lhs.capacityNeeded < rhs.capacityNeeded) return 1;
+
+            return String.Compare(lhs.dst.name, rhs.dst.name);
         }
 
         public void AllocateLinksPaths()
         {
+            links.Sort(LinkCmp);
             links.ForEach(AllocateLinkPath);
         }
 
@@ -137,7 +181,7 @@ namespace LinkAllocator
         public void AllocateSlots()
         {
             connections.ForEach(x => x.CreateSlots());
-            links.ForEach(x => x.FindAvailableSlotSets());
+            links.ForEach(x => x.FindAvailableSlotSets()); //TODO: sort by linkCapacity
 
             TryAllocateLinks(links);
         }

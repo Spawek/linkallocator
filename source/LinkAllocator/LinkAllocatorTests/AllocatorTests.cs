@@ -149,5 +149,29 @@ namespace LinkAllocatorTests
             Assert.AreEqual(t.GetLink("L7"), t.GetConnection("C1").slots[6].slotOWner);
             Assert.AreEqual(t.GetLink("L8"), t.GetConnection("C1").slots[7].slotOWner);
         }
+
+        /// <summary>
+        /// after first allocation of L1 on C1 it has to be deallocated 
+        /// (or L2 allocation wont be possible at all) and L1 should be allocated C2
+        /// </summary>
+        [TestMethod]
+        public void PathAllocationNeedsSorting()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+            t.AddDevice("D3");
+
+            t.AddConnection("C1", "D1", "D2", 20);
+            t.AddConnection("C2", "D1", "D3", 10);
+            t.AddConnection("C3", "D3", "D2", 10);
+
+            t.AddLink("L1", "D1", "D2", 10);
+            t.AddLink("L2", "D1", "D2", 20);
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+        }
     }
 }
