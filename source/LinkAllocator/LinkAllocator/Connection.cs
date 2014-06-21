@@ -48,28 +48,61 @@ namespace LinkAllocator
             }
             currCapacity += link.capacityNeeded;
         }
-        public bool CanAllocateSlot(int slotNo)
+        public List<int> GetNeededSlotsForLinkAndBeginPosition(Link link, int linkBeginPos)
         {
-            return slots[slotNo].state == Slot.State.FREE;
-        }
-        public void AllocateSlot(Link link, int slotNo)
-        {
-            if (slots[slotNo].state != Slot.State.FREE)
+            int beginPos = -1;
+            if (linkBeginPos == 0)
             {
-                throw new ApplicationException("cannot allocate taken slot");
+                beginPos = 0;
             }
+            else
+            {
+                beginPos = linkBeginPos / (link.maxCapacityOnPath / maxCapacity);
+            }
+            int firstSlot = beginPos / CapacityPerSlot;
+            int noOfSlotsNeeded = link.capacityNeeded / CapacityPerSlot;
+            List<int> neededSlots = Enumerable.Range(firstSlot, noOfSlotsNeeded).ToList();
 
-            slots[slotNo].state = Slot.State.TAKEN;
-            slots[slotNo].slotOWner = link;
+            return neededSlots;
         }
-        public void DeallocateSlot(int slotNo)
+        public bool CanAllocateSlot(Link link, int linkBeginPos)
         {
-            if (slots[slotNo].state != Slot.State.TAKEN)
+            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, linkBeginPos);
+
+            return CanAllocateSlots(neededSlots);
+        }
+        private bool CanAllocateSlots(List<int> slotsNumbers)
+        {
+            return slotsNumbers.All(x => slots[x].state == Slot.State.FREE);
+        }
+        public void AllocateSlot(Link link, int beginPos)
+        {
+            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, beginPos);
+
+            foreach(int slotNo in neededSlots) //TODO: refactor - use .foreach
             {
-                throw new ApplicationException("cannot deallocate not taken slot");
+                if (slots[slotNo].state != Slot.State.FREE)
+                {
+                    throw new ApplicationException("cannot allocate taken slot");
+                }
+
+                slots[slotNo].state = Slot.State.TAKEN;
+                slots[slotNo].slotOWner = link;
             }
-            slots[slotNo].state = Slot.State.FREE;
-            slots[slotNo].slotOWner = null;
+        }
+        public void DeallocateSlot(Link link, int beginPos)
+        {
+            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, beginPos);
+
+            foreach (int slotNo in neededSlots) //TODO: refactor - use .foreach
+            {
+                if (slots[slotNo].state != Slot.State.TAKEN)
+                {
+                    throw new ApplicationException("cannot deallocate not taken slot");
+                }
+                slots[slotNo].state = Slot.State.FREE;
+                slots[slotNo].slotOWner = null;
+            }
         }
         public int FreeSlots { get { return slots.Count(x => x.state == Slot.State.FREE); } }
         public void CreateSlots()

@@ -181,7 +181,7 @@ namespace LinkAllocator
         public void AllocateSlots()
         {
             connections.ForEach(x => x.CreateSlots());
-            links.ForEach(x => x.FindAvailableSlotSets()); //TODO: sort by linkCapacity
+            links.ForEach(x => x.FindAvailableBeginPositions());
 
             if (!TryAllocateLinks(links))
             {
@@ -196,15 +196,15 @@ namespace LinkAllocator
 
             Link currLink = links[0];
 
-            foreach(List<int> slotSet in currLink.availableSlotSets)
+            foreach(int beginPos in currLink.availableBegins)
             {
-                if (currLink.TryAllocateSlotSet(slotSet))
+                if (currLink.TryAllocateSlot(beginPos))
                 {
                     if (TryAllocateLinks(links.GetRange(1, links.Count - 1)))
                     {
                         return true;
                     }
-                    currLink.DeallocateSlotSet(slotSet); //test it!
+                    currLink.DeallocateSlot(beginPos);
                 }
             }
 
