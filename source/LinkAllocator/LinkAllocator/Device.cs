@@ -11,7 +11,7 @@ namespace LinkAllocator
         public string name;
         public List<Connection> outgoingConnections = new List<Connection>();
         public List<Connection> incomingConnections = new List<Connection>();
-        public int mark = 0; //needed for path finding
+        public int mark = 0;  // needed for path finding
         
         public Device(string _name)
         {

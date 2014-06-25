@@ -23,6 +23,11 @@ namespace LinkAllocator
         public Device destination;
         public List<Slot> slots = null;
         private List<Link> allocatedLinks = new List<Link>();
+
+        public bool IsLinkAllocated(Link link)
+        {
+            return allocatedLinks.Any(x => x == link);
+        }
         public bool CanAllocateLink(Link link)
         {
             return currCapacity >= link.capacityNeeded;

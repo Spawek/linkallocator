@@ -6,6 +6,17 @@ using System.Threading.Tasks;
 
 namespace LinkAllocator
 {
+    [Serializable]
+    public class PathValidationException : Exception
+    {
+        public PathValidationException() { }
+        public PathValidationException(string message) : base(message) { }
+        public PathValidationException(string message, Exception inner) : base(message, inner) { }
+        protected PathValidationException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context)
+            : base(info, context) { }
+    }
     /// <summary>
     /// TODO:
     ///     - add validator to path finder
@@ -119,8 +130,36 @@ namespace LinkAllocator
 
         private void AllocateLinkPath(Link link)
         {
-            BFSForLink(link);
+            CreateMarksWithBFSForLink(link);
             FindShortestPathAndAllocateResourcesForLink(link);
+            ValidateLinkPath(link);
+        }
+
+        private void ValidateLinkPath(Link link)
+        {
+            if (link.path.Count == 0)
+                throw new PathValidationException("Path size is 0!");
+            if (link.path[0].source != link.src)
+                throw new PathValidationException("Path source is wrong!");
+            if (link.path[link.path.Count - 1].destination != link.dst)
+                throw new PathValidationException("Path destination is wrong!");
+            CheckPathConsistency(link);
+            CheckIfLinkIsAllocatedOnAllItsPathConnections(link);
+        }
+
+        private static void CheckIfLinkIsAllocatedOnAllItsPathConnections(Link link)
+        {
+            if (!link.path.All(x => x.IsLinkAllocated(link)))
+                throw new PathValidationException("Path is not allocated on all its connections!");
+        }
+
+        private static void CheckPathConsistency(Link link)
+        {
+            for (int i = 0; i < link.path.Count - 1; i++)
+            {
+                if (link.path[i].destination != link.path[i + 1].source)
+                    throw new PathValidationException("Path is not consistent!");
+            }
         }
 
         private void FindShortestPathAndAllocateResourcesForLink(Link link)
@@ -140,12 +179,11 @@ namespace LinkAllocator
             link.path = path;
         }
 
-        private void BFSForLink(Link link)
+        private void CreateMarksWithBFSForLink(Link link)
         {
             const int NOT_SEEN = -1;
             const int START_POINT = 0;
 
-            //BFS
             Queue<Device> frontier = new Queue<Device>();
             frontier.Enqueue(link.src);
             ResetMarks(NOT_SEEN);
@@ -155,7 +193,7 @@ namespace LinkAllocator
             {
                 Device curr = frontier.Dequeue();
 
-                foreach (Connection c in curr.outgoingConnections) //can be optimized by stopping when dst is found
+                foreach (Connection c in curr.outgoingConnections)
                 {
                     if (c.destination.mark == NOT_SEEN && c.CanAllocateLink(link))
                     {
@@ -179,6 +217,25 @@ namespace LinkAllocator
 
             if (!TryAllocateLinks(links))
                 throw new ApplicationException("Cannot allocate slots!");
+
+            ValidateSlotsAllocation();
+        }
+
+        private void ValidateSlotsAllocation()
+        {
+            links.ForEach(CheckNumberOfAllocatedSlots);
+        }
+
+        private void CheckNumberOfAllocatedSlots(Link link)
+        {
+            foreach (Connection connection in link.path)
+            {
+                int neededSlotsOnConnection = link.capacityNeeded / connection.CapacityPerSlot;
+                int slotsAllocatedOnConnection =
+                    connection.slots.Count(x => x.state == Slot.State.TAKEN && x.slotOWner == link);
+                if (neededSlotsOnConnection != slotsAllocatedOnConnection)
+                    throw new PathValidationException("Slots number allocated on connection is wrong");
+            }
         }
 
         private bool TryAllocateLinks(List<Link> links)
