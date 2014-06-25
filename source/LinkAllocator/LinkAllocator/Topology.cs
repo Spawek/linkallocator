@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace LinkAllocator
 {
+    /// <summary>
+    /// TODO:
+    ///     - add validator to path finder
+    ///     - add validator to slot allocator
+    ///     - namy receivers/transmitters (find path from next device to first path)
+    ///     - fix empty list returing bug in better way (nicer)
+    /// </summary>
     public class Topology
     {
         public List<Device> devices = new List<Device>();
@@ -15,10 +22,8 @@ namespace LinkAllocator
         public Device GetDevice(string name)
         {
             List<Device> devs = devices.FindAll(x => x.name == name);
-            if(devs.Count != 1)
-            {
+            if (devs.Count != 1)
                 throw new ApplicationException("topology (devies) broken");
-            }
 
             return devs[0];
         }
@@ -26,10 +31,8 @@ namespace LinkAllocator
         public Link GetLink(string name)
         {
             List<Link> l = links.FindAll(x => x.name == name);
-            if(l.Count != 1)
-            {
+            if (l.Count != 1)
                 throw new ApplicationException("topology (links) broken");
-            }
 
             return l[0];
         }
@@ -38,9 +41,7 @@ namespace LinkAllocator
         {
             List<Connection> c = connections.FindAll(x => x.name == name);
             if (c.Count != 1)
-            {
                 throw new ApplicationException("topology (connections) broken");
-            }
 
             return c[0];
         }
@@ -48,9 +49,7 @@ namespace LinkAllocator
         public void AddDevice(string name)
         {
             if (devices.Any(x=> x.name == name))
-            {
                 throw new ApplicationException("there cannot be 2 devices with the same name");
-            }
 
             devices.Add(new Device(name));
         }
@@ -66,14 +65,9 @@ namespace LinkAllocator
         public void AddConnection(string name, string dev1, string dev2, int capacity)
         {
             if (connections.Any(x => x.source.name == dev1 && x.destination.name == dev2))
-            {
                 throw new ApplicationException("there cannnot be 2 connections in same direction between 2 devices");
-            }
-
             if (connections.Any(x => x.name == name))
-            {
                 throw new ApplicationException("there cannot be 2 connection with the sane name");
-            }
 
             Device d1 = GetDevice(dev1);
             Device d2 = GetDevice(dev2);
@@ -87,10 +81,12 @@ namespace LinkAllocator
 
         public void AddLink(string name, string dev1, string dev2, int capacityNeeded)
         {
-            if(links.Any(x=>x.name == name))
-            {
+            if (links.Any(x=>x.name == name))
                 throw new ApplicationException("there cannot be 2 links with the same name");
-            }
+            if (dev1 == dev2)
+                throw new ApplicationException("link cannot go from point A to point A!");
+            if (capacityNeeded <= 0)
+                throw new ApplicationException("link capacity should be > 0");
 
             links.Add(new Link(name, GetDevice(dev1), GetDevice(dev2), capacityNeeded));
         }
@@ -170,9 +166,7 @@ namespace LinkAllocator
             }
 
             if (link.dst.mark == NOT_SEEN)
-            {
                 throw new ApplicationException("Path allocation algirithm cannot allocate a link: " + link.name);
-            }
         }
 
         /// <summary>
@@ -184,9 +178,7 @@ namespace LinkAllocator
             links.ForEach(x => x.FindAvailableBeginPositions());
 
             if (!TryAllocateLinks(links))
-            {
                 throw new ApplicationException("Cannot allocate slots!");
-            }
         }
 
         private bool TryAllocateLinks(List<Link> links)
