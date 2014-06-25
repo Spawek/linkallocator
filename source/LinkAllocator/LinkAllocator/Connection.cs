@@ -29,23 +29,19 @@ namespace LinkAllocator
         }
         public void AllocatePath(Link link)
         {
-            if(currCapacity < link.capacityNeeded)
-            {
+            if (currCapacity < link.capacityNeeded)
                 throw new ApplicationException("cannot allocate link!");
-            }
             if (allocatedLinks.Exists(x => x == link))
-            {
                 throw new ApplicationException("link already exists!");
-            }
+
             allocatedLinks.Add(link);
             currCapacity -= link.capacityNeeded;
         }
         public void DeallocatePath(Link link)
         {
             if (!allocatedLinks.Remove(link))
-            {
                 throw new ApplicationException("link not exists!");
-            }
+            
             currCapacity += link.capacityNeeded;
         }
 
@@ -100,9 +96,7 @@ namespace LinkAllocator
             foreach(int slotNo in neededSlots) //TODO: refactor - use .foreach
             {
                 if (slots[slotNo].state != Slot.State.FREE)
-                {
                     throw new ApplicationException("cannot allocate taken slot");
-                }
 
                 slots[slotNo].state = Slot.State.TAKEN;
                 slots[slotNo].slotOWner = link;
@@ -115,9 +109,8 @@ namespace LinkAllocator
             foreach (int slotNo in neededSlots) //TODO: refactor - use .foreach
             {
                 if (slots[slotNo].state != Slot.State.TAKEN)
-                {
                     throw new ApplicationException("cannot deallocate not taken slot");
-                }
+
                 slots[slotNo].state = Slot.State.FREE;
                 slots[slotNo].slotOWner = null;
             }
@@ -127,17 +120,13 @@ namespace LinkAllocator
         {
             int minNeededCapacity = allocatedLinks.Min(x => x.capacityNeeded);
 
-            if(maxCapacity % minNeededCapacity != 0)
-            {
+            if (maxCapacity % minNeededCapacity != 0)
                 throw new ApplicationException("Cannot calculate slots number");
-            }
 
             int slotsNumbers = maxCapacity / minNeededCapacity;
 
-            if(allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
-            {
+            if (allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
                 throw new ApplicationException("Correct slots number cannot be calculated");
-            }
 
             slots = new List<Slot>();
             for (int i = 0; i < slotsNumbers; i++)
