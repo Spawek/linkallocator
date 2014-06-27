@@ -9,6 +9,11 @@ namespace LinkAllocator
     public class Slot
     {
         public State state { get; private set; }
+
+        /// <summary>
+        /// slot owner can be not null only when state is TAKEN
+        /// (and this class takes care of it)
+        /// </summary>
         public Link slotOWner { get; private set; }
 
         public enum State
@@ -44,8 +49,8 @@ namespace LinkAllocator
             if (state != State.TAKEN)
                 throw new ApplicationException("cannot free not taken slot!");
 
-            state = State.FREE;
             slotOWner = null;
+            state = State.FREE;
         }
 
         public void Forbid()
