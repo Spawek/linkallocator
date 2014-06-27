@@ -92,7 +92,7 @@ namespace LinkAllocator
         }
         private bool CanAllocateSlots(List<int> slotsNumbers)
         {
-            return slotsNumbers.All(x => slots[x].state == Slot.State.FREE);
+            return slotsNumbers.All(x => slots[x].IsAvailable());
         }
         public void AllocateSlot(Link link, int beginPos)
         {
@@ -100,27 +100,18 @@ namespace LinkAllocator
 
             foreach(int slotNo in neededSlots) //TODO: refactor - use .foreach
             {
-                if (slots[slotNo].state != Slot.State.FREE)
+                if (!slots[slotNo].IsAvailable())
                     throw new ApplicationException("cannot allocate taken slot");
 
-                slots[slotNo].state = Slot.State.TAKEN;
-                slots[slotNo].slotOWner = link;
+                slots[slotNo].Allocate(link);
             }
         }
         public void DeallocateSlot(Link link, int beginPos)
         {
             List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, beginPos);
 
-            foreach (int slotNo in neededSlots) //TODO: refactor - use .foreach
-            {
-                if (slots[slotNo].state != Slot.State.TAKEN)
-                    throw new ApplicationException("cannot deallocate not taken slot");
-
-                slots[slotNo].state = Slot.State.FREE;
-                slots[slotNo].slotOWner = null;
-            }
+            neededSlots.ForEach(x => slots[x].Deallocate());
         }
-        public int FreeSlots { get { return slots.Count(x => x.state == Slot.State.FREE); } }
         public void CreateSlots()
         {
             int minNeededCapacity = allocatedLinks.Min(x => x.capacityNeeded);
@@ -136,7 +127,7 @@ namespace LinkAllocator
             slots = new List<Slot>();
             for (int i = 0; i < slotsNumbers; i++)
             {
-                slots.Add(new Slot(Slot.State.FREE));
+                slots.Add(new Slot());
             }
         }
 

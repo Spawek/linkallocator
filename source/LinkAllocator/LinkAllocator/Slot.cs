@@ -8,17 +8,52 @@ namespace LinkAllocator
 {
     public class Slot
     {
-        public State state;
-        public Link slotOWner = null;
+        public State state { get; private set; }
+        public Link slotOWner { get; private set; }
 
         public enum State
         {
             FREE, TAKEN, FORBIDDEN
         }
 
-        public Slot(State _state)
+        public Slot()
         {
-            state = _state;
+            state = State.FREE;
+        }
+
+        public bool IsAvailable()
+        {
+            return state == State.FREE;
+        }
+
+        public void Allocate(Link link)
+        {
+            if (state != State.FREE)
+                throw new ApplicationException("Cannot reserve not free slot");
+
+            state = State.TAKEN;
+            slotOWner = link;
+        }
+        
+        /// <summary>
+        /// only taken (not forbidden) slots can be deallocated
+        /// </summary>
+        /// <param name="link"></param>
+        public void Deallocate()
+        {
+            if (state != State.TAKEN)
+                throw new ApplicationException("cannot free not taken slot!");
+
+            state = State.FREE;
+            slotOWner = null;
+        }
+
+        public void Forbid()
+        {
+            if (state != State.FREE)
+                throw new ApplicationException("Cannot forbid not free slot");
+
+            state = State.FORBIDDEN;
         }
 
         public override string ToString()

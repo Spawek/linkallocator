@@ -19,10 +19,9 @@ namespace LinkAllocator
     }
     /// <summary>
     /// TODO:
-    ///     - add validator to path finder
-    ///     - add validator to slot allocator
     ///     - namy receivers/transmitters (find path from next device to first path)
     ///     - fix empty list returing bug in better way (nicer)
+    ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     /// </summary>
     public class Topology
     {
@@ -231,8 +230,7 @@ namespace LinkAllocator
             foreach (Connection connection in link.path)
             {
                 int neededSlotsOnConnection = link.capacityNeeded / connection.CapacityPerSlot;
-                int slotsAllocatedOnConnection =
-                    connection.slots.Count(x => x.state == Slot.State.TAKEN && x.slotOWner == link);
+                int slotsAllocatedOnConnection = connection.slots.Count(x => x.slotOWner == link);
                 if (neededSlotsOnConnection != slotsAllocatedOnConnection)
                     throw new PathValidationException("Slots number allocated on connection is wrong");
             }
