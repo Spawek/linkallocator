@@ -10,18 +10,20 @@ namespace LinkAllocator
     {
         public string name; //channel?
         public Device mainSource = null;
-        public List<Device> additionalSources = new List<Device>(); //get rid of these additional stuff
+        public List<Device> additionalSources = new List<Device>();
+        public List<List<Connection>> additionalSourcesPaths = new List<List<Connection>>();
         public Device mainDestination = null;
         public List<Device> additionalDestinations = new List<Device>();
+        public List<List<Connection>> additionalDestinationPaths = new List<List<Connection>>();
         public int capacityNeeded;
         public List<Connection> mainPath = null;
-        public List<Connection> additionalPaths = new List<Connection>();
         public List<Connection> wholePath
         {
             get 
             {   
                 var wholePath = mainPath.GetRange(0, mainPath.Count);
-                wholePath.AddRange(additionalPaths);
+                additionalSourcesPaths.ForEach(x => wholePath.AddRange(x));
+                additionalDestinationPaths.ForEach(x => wholePath.AddRange(x));
 
                 return wholePath;
             }

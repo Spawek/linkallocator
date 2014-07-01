@@ -20,6 +20,7 @@ namespace LinkAllocator
     /// <summary>
     /// TODO:
     ///     - add validation for multi receiver/transmitter
+    ///     - add expects to tests for multi receiver/transmitter
     ///     - fix empty list returing bug in better way (nicer)
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     ///     - fixed slot constraint
@@ -174,7 +175,7 @@ namespace LinkAllocator
                     FindShortestReversedPathForLinkAndGivenDestination(link, destination, devWithMinMark);
                 additionalDestinationPath.ForEach(x => x.AllocatePath(link));
 
-                link.additionalPaths.AddRange(additionalDestinationPath);
+                link.additionalDestinationPaths.Add(additionalDestinationPath);
             }
         }
 
@@ -193,7 +194,7 @@ namespace LinkAllocator
                     FindShortestPathForLinkAndGivenDestination(link, source, devWithMinMark);
                 additionalSourcePath.ForEach(x => x.AllocatePath(link));
 
-                link.additionalPaths.AddRange(additionalSourcePath);
+                link.additionalSourcesPaths.Add(additionalSourcePath);
             }
         }
 
