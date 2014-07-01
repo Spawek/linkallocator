@@ -216,13 +216,36 @@ namespace LinkAllocator
         private void ValidateLinkPaths(Link link)
         {
             VerifyPathsSize(link);
-            if (link.mainPath[0].source != link.mainSource)
-                throw new PathValidationException("Path source is wrong!");
-            if (link.mainPath[link.mainPath.Count - 1].destination != link.mainDestination)
-                throw new PathValidationException("Path destination is wrong!");
+            VerifyPathsSourceAndDestination(link);
             CheckPathsConsistency(link);
             CheckIfLinkIsAllocatedOnAllItsPathConnections(link);
             CheckIfEveryConnectionInWholePathIsUnique(link);
+        }
+
+        private static void VerifyPathsSourceAndDestination(Link link)
+        {
+            VerifyPathSource(link.mainPath, link.mainSource);
+            VerifyPathDestination(link.mainPath, link.mainDestination);
+            for (int i = 0; i < link.additionalSources.Count; i++)
+            {
+                VerifyPathSource(link.additionalSourcePaths[i], link.additionalSources[i]);
+            }
+            for (int i = 0; i < link.additionalDestinations.Count; i++)
+            {
+                VerifyPathDestination(link.additionalDestinationPaths[i], link.additionalDestinations[i]);
+            }
+        }
+
+        private static void VerifyPathSource(List<Connection> path, Device expectedSource)
+        {
+            if (path[0].source != expectedSource)
+                throw new PathValidationException("Path source is wrong!");
+        }
+
+        private static void VerifyPathDestination(List<Connection> path, Device expectedDestination)
+        {
+            if (path[path.Count - 1].destination != expectedDestination)
+                throw new PathValidationException("Path destination is wrong!");
         }
 
         private static void VerifyPathsSize(Link link)
