@@ -1,6 +1,7 @@
 ﻿using System;
 using LinkAllocator;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace LinkAllocatorTests
 {
@@ -218,6 +219,63 @@ namespace LinkAllocatorTests
 
             t.AddLink("L1", "D1", "D3", 10);
             t.AddLink("L2", "D1", "D4", 10);
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+        }
+
+        /// <summary>
+        ///      D3
+        ///     /  \
+        ///    /    \ 
+        ///   /      \
+        ///  D1       D2
+        /// </summary>
+        [TestMethod]
+        public void FindSlotsForPathWith2Sources()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+            t.AddDevice("D3");
+
+            t.AddConnection("C1", "D1", "D2", 10);
+            t.AddConnection("C2", "D2", "D3", 10);
+
+            List<string> sources = new List<string>() { "D1", "D2" };
+            List<string> destinations = new List<string>() { "D3" };
+
+            t.AddLink("L1", sources, destinations, 10);
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+        }
+
+
+        /// <summary>
+        ///  D2       D3
+        ///   \      /
+        ///    \    /
+        ///     \  /
+        ///      D1
+        /// </summary>
+        [TestMethod]
+        public void FindSlotsForPathWith2Destinations()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+            t.AddDevice("D3");
+
+            t.AddConnection("C1", "D1", "D2", 10);
+            t.AddConnection("C2", "D1", "D3", 10);
+
+            List<string> sources = new List<string>() { "D1" };
+            List<string> destinations = new List<string>() { "D2", "D3" };
+
+            t.AddLink("L1", sources, destinations, 10);
 
             t.AllocateLinksPaths();
             t.AllocateSlots();

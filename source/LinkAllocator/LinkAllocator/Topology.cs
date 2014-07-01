@@ -19,12 +19,12 @@ namespace LinkAllocator
     }
     /// <summary>
     /// TODO:
-    ///     - many receivers/transmitters (find path from next device to first path)
+    ///     - add validation for multi receiver/transmitter
     ///     - fix empty list returing bug in better way (nicer)
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     ///     - fixed slot constraint
     ///     - forbidden slot constraint
-    ///     - fixed path constraint?
+    ///     - fixed path constraint (has to go throught?)
     /// </summary>
     public class Topology
     {
@@ -155,7 +155,32 @@ namespace LinkAllocator
 
         private void AllocateAdditionalPaths(Link link)
         {
-            foreach(Device source in link.additionalSources)
+            AllocateAdditionalSourcesPaths(link);
+            AllocateAdditionalDestinationPaths(link);
+        }
+
+        private void AllocateAdditionalDestinationPaths(Link link)
+        {
+            foreach (Device destination in link.additionalDestinations)
+            {
+                CreateMarksWithReversedBFS(link, destination);
+                int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN) ? x.mark : int.MaxValue);
+                if (minMark == int.MaxValue)
+                    throw new ApplicationException("Path allocation algorithm cannot allocate additional destination for link: " + link.name);
+
+                Device devWithMinMark = link.devicesOnWholePath.Find(x => x.mark == minMark);
+
+                List<Connection> additionalDestinationPath =
+                    FindShortestReversedPathForLinkAndGivenDestination(link, destination, devWithMinMark);
+                additionalDestinationPath.ForEach(x => x.AllocatePath(link));
+
+                link.additionalPaths.AddRange(additionalDestinationPath);
+            }
+        }
+
+        private void AllocateAdditionalSourcesPaths(Link link)
+        {
+            foreach (Device source in link.additionalSources)
             {
                 CreateMarksWithBFS(link, source);
                 int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN) ? x.mark : int.MaxValue);
@@ -169,22 +194,6 @@ namespace LinkAllocator
                 additionalSourcePath.ForEach(x => x.AllocatePath(link));
 
                 link.additionalPaths.AddRange(additionalSourcePath);
-            }
-
-            foreach (Device destination in link.additionalDestinations)
-            {
-                CreateMarksWithReversedBFS(link, destination);
-                int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN)? x.mark : int.MaxValue);
-                if (minMark == int.MaxValue)
-                    throw new ApplicationException("Path allocation algorithm cannot allocate additional destination for link: " + link.name);
-
-                Device devWithMinMark = link.devicesOnWholePath.Find(x => x.mark == minMark);
-
-                List<Connection> additionalDestinationPath =
-                    FindShortestReversedPathForLinkAndGivenDestination(link, destination, devWithMinMark);
-                additionalDestinationPath.ForEach(x => x.AllocatePath(link));
-
-                link.additionalPaths.AddRange(additionalDestinationPath);
             }
         }
 
@@ -210,17 +219,24 @@ namespace LinkAllocator
                 throw new PathValidationException("Path source is wrong!");
             if (link.mainPath[link.mainPath.Count - 1].destination != link.mainDestination)
                 throw new PathValidationException("Path destination is wrong!");
-            CheckPathConsistency(link);
+            CheckMainPathConsistency(link);
             CheckIfLinkIsAllocatedOnAllItsPathConnections(link);
+            CheckIfEveryConnectionInWholePathIsUnique(link);
+        }
+
+        private void CheckIfEveryConnectionInWholePathIsUnique(Link link)
+        {
+            if (link.wholePath.Distinct().ToList().Count != link.wholePath.Count)
+                throw new ApplicationException("Whole path connections are not distinct!");
         }
 
         private static void CheckIfLinkIsAllocatedOnAllItsPathConnections(Link link)
         {
-            if (!link.mainPath.All(x => x.IsLinkAllocated(link)))
+            if (!link.wholePath.All(x => x.IsLinkAllocated(link)))
                 throw new PathValidationException("Path is not allocated on all its connections!");
         }
 
-        private static void CheckPathConsistency(Link link)
+        private static void CheckMainPathConsistency(Link link)
         {
             for (int i = 0; i < link.mainPath.Count - 1; i++)
             {
