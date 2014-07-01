@@ -50,7 +50,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AllocatorTests.cs" />
+    <Compile Include="SlotAllocationTests.cs" />
+    <Compile Include="PathAllocationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

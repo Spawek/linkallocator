@@ -22,12 +22,18 @@ namespace LinkAllocator
     ///     - many receivers/transmitters (find path from next device to first path)
     ///     - fix empty list returing bug in better way (nicer)
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
+    ///     - fixed slot constraint
+    ///     - forbidden slot constraint
+    ///     - fixed path constraint?
     /// </summary>
     public class Topology
     {
         public List<Device> devices = new List<Device>();
         public List<Link> links = new List<Link>();
         public List<Connection> connections = new List<Connection>();
+
+        private const int NOT_SEEN = -1;
+        private const int START_POINT = 0;
 
         public Device GetDevice(string name)
         {
@@ -89,18 +95,32 @@ namespace LinkAllocator
             d2.incomingConnections.Add(c);
         }
 
-        public void AddLink(string name, string dev1, string dev2, int capacityNeeded)
+        public void AddLink(string name, string source, string destination, int capacityNeeded)
         {
             if (links.Any(x=>x.name == name))
-                throw new ApplicationException("there cannot be 2 links with the same name");
-            if (dev1 == dev2)
-                throw new ApplicationException("link cannot go from point A to point A!");
+                throw new ArgumentException("there cannot be 2 links with the same name");
+            if (source == destination)
+                throw new ArgumentException("link source cannot be link destination!");
             if (capacityNeeded <= 0)
-                throw new ApplicationException("link capacity should be > 0");
+                throw new ArgumentException("link capacity should be > 0");
 
-            links.Add(new Link(name, GetDevice(dev1), GetDevice(dev2), capacityNeeded));
+            links.Add(new Link(name, GetDevice(source), GetDevice(destination), capacityNeeded));
         }
 
+        public void AddLink(string name, List<string> sources, List<string> destinaitons, int capacityNeeded)
+        {
+            if (links.Any(x => x.name == name))
+                throw new ArgumentException("there cannot be 2 links with the same name");
+            if (sources.Any(x=>destinaitons.Any(y => x == y)))
+                throw new ArgumentException("link source cannot be link destination!");
+            if (capacityNeeded <= 0)
+                throw new ArgumentException("link capacity should be > 0");
+
+            List<Device> sourceDevices = sources.Select(x=>GetDevice(x)).ToList();
+            List<Device> destinationDevices = destinaitons.Select(x=>GetDevice(x)).ToList();
+
+            links.Add(new Link(name, sourceDevices, destinationDevices, capacityNeeded));
+        }
 
         /// <summary>
         /// Comparation in decreasing order of capacity needed and then in dst.name order.
@@ -129,8 +149,56 @@ namespace LinkAllocator
 
         private void AllocateLinkPath(Link link)
         {
+            AllocateMainPath(link);
+            AllocateAdditionalPaths(link);
+        }
+
+        private void AllocateAdditionalPaths(Link link)
+        {
+            foreach(Device source in link.additionalSources)
+            {
+                CreateMarksWithBFS(link, source);
+                int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN) ? x.mark : int.MaxValue);
+                if (minMark == int.MaxValue)
+                    throw new ApplicationException("Path allocation algoritithm cannot allocate additional source for link: " + link.name);
+
+                Device devWithMinMark = link.devicesOnWholePath.Find(x => x.mark == minMark);
+
+                List<Connection> additionalSourcePath =
+                    FindShortestPathForLinkAndGivenDestination(link, source, devWithMinMark);
+                additionalSourcePath.ForEach(x => x.AllocatePath(link));
+
+                link.additionalPaths.AddRange(additionalSourcePath);
+            }
+
+            foreach (Device destination in link.additionalDestinations)
+            {
+                CreateMarksWithReversedBFS(link, destination);
+                int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN)? x.mark : int.MaxValue);
+                if (minMark == int.MaxValue)
+                    throw new ApplicationException("Path allocation algorithm cannot allocate additional destination for link: " + link.name);
+
+                Device devWithMinMark = link.devicesOnWholePath.Find(x => x.mark == minMark);
+
+                List<Connection> additionalDestinationPath =
+                    FindShortestReversedPathForLinkAndGivenDestination(link, destination, devWithMinMark);
+                additionalDestinationPath.ForEach(x => x.AllocatePath(link));
+
+                link.additionalPaths.AddRange(additionalDestinationPath);
+            }
+        }
+
+        private void AllocateMainPath(Link link)
+        {
             CreateMarksWithBFS(link, link.mainSource);
-            FindShortestPathAndAllocateResourcesForLinkAndGivenDestination(link, link.mainDestination);
+            if (link.mainDestination.mark == NOT_SEEN)
+                throw new ApplicationException("Path allocation algirithm cannot allocate a link: " + link.name);
+
+            if (link.mainPath != null)
+                throw new ApplicationException("main path should be empty in this moment!");
+            List<Connection> path = FindShortestPathForLinkAndGivenDestination(link, link.mainSource, link.mainDestination);
+            path.ForEach(x => x.AllocatePath(link));
+            link.mainPath = path;
             ValidateLinkMainPath(link);
         }
 
@@ -161,30 +229,43 @@ namespace LinkAllocator
             }
         }
 
-        private void FindShortestPathAndAllocateResourcesForLinkAndGivenDestination(Link link, Device destination)
+        private List<Connection> FindShortestReversedPathForLinkAndGivenDestination(Link link, Device source, Device destination)
         {
             Device currDev = destination;
             List<Connection> path = new List<Connection>();
-            while (currDev != link.mainSource)
+            while (currDev != source)
+            {
+                Connection currPath = currDev.outgoingConnections.Find(x => x.destination.mark == currDev.mark - 1);
+                path.Add(currPath);
+
+                currDev = currPath.destination;
+            }
+
+            path.Reverse();
+
+            return path;
+        }
+        private List<Connection> FindShortestPathForLinkAndGivenDestination(Link link, Device source, Device destination)
+        {
+            Device currDev = destination;
+            List<Connection> path = new List<Connection>();
+            while (currDev != source)
             {
                 Connection currPath = currDev.incomingConnections.Find(x => x.source.mark == currDev.mark - 1);
-                currPath.AllocatePath(link);
                 path.Add(currPath);
 
                 currDev = currPath.source;
             }
 
             path.Reverse();
-            link.mainPath = path;
+
+            return path;
         }
 
         private void CreateMarksWithBFS(Link link, Device startPoint)
         {
-            const int NOT_SEEN = -1;
-            const int START_POINT = 0;
-
             Queue<Device> frontier = new Queue<Device>();
-            frontier.Enqueue(link.mainSource);
+            frontier.Enqueue(startPoint);
             ResetMarks(NOT_SEEN);
             startPoint.mark = START_POINT;
 
@@ -196,14 +277,39 @@ namespace LinkAllocator
                 {
                     if (c.destination.mark == NOT_SEEN && c.CanAllocateLink(link))
                     {
-                        c.destination.mark = c.source.mark + 1;
+                        c.destination.mark = curr.mark + 1;
                         frontier.Enqueue(c.destination);
                     }
                 }
             }
+        }
 
-            if (link.mainDestination.mark == NOT_SEEN)
-                throw new ApplicationException("Path allocation algirithm cannot allocate a link: " + link.name);
+        /// <summary>
+        /// reversed BFS uses one-way links in reversed direction
+        /// (uses incoming connections instead of outgoing connections)
+        /// </summary>
+        /// <param name="link"></param>
+        /// <param name="destination"></param>
+        private void CreateMarksWithReversedBFS(Link link, Device startPoint)
+        {
+            Queue<Device> frontier = new Queue<Device>();
+            frontier.Enqueue(startPoint);
+            ResetMarks(NOT_SEEN);
+            startPoint.mark = START_POINT;
+
+            while (frontier.Count != 0)
+            {
+                Device curr = frontier.Dequeue();
+
+                foreach (Connection c in curr.incomingConnections)
+                {
+                    if (c.source.mark == NOT_SEEN && c.CanAllocateLink(link))
+                    {
+                        c.source.mark = curr.mark + 1;
+                        frontier.Enqueue(c.source);
+                    }
+                }
+            }
         }
 
         /// <summary>

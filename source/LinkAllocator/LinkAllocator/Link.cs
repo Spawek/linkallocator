@@ -10,12 +10,38 @@ namespace LinkAllocator
     {
         public string name; //channel?
         public Device mainSource = null;
-        public List<Device> additionalSources = new List<Device>();
+        public List<Device> additionalSources = new List<Device>(); //get rid of these additional stuff
         public Device mainDestination = null;
         public List<Device> additionalDestinations = new List<Device>();
         public int capacityNeeded;
-        public List<Connection> mainPath = new List<Connection>();
-        public List<Device> additionalPaths = new List<Device>();
+        public List<Connection> mainPath = null;
+        public List<Connection> additionalPaths = new List<Connection>();
+        public List<Connection> wholePath
+        {
+            get 
+            {   
+                var wholePath = mainPath.GetRange(0, mainPath.Count);
+                wholePath.AddRange(additionalPaths);
+
+                return wholePath;
+            }
+        }
+        public List<Device> devicesOnWholePath
+        {
+            get
+            { //TODO: use set
+                List<Device> devicesOnPath = new List<Device>();
+                foreach (Connection conn in wholePath)
+                {
+                    if (!devicesOnPath.Exists(x => x == conn.source))
+                        devicesOnPath.Add(conn.source);
+                    if (!devicesOnPath.Exists(x => x == conn.destination)) 
+                        devicesOnPath.Add(conn.destination);
+                }
+
+                return devicesOnPath;
+            }
+        }
         public List<int> availableBegins = null;
         public int maxCapacityOnPath = -1;
 
