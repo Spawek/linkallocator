@@ -33,9 +33,9 @@ namespace LinkAllocatorTests
 
             t.AllocateLinksPaths();
 
-            Assert.AreEqual(1, t.GetLink("L1").path.Count);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(1, t.GetLink("L1").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").mainPath[0].destination);
         }
 
         [TestMethod]
@@ -59,15 +59,15 @@ namespace LinkAllocatorTests
 
             t.AllocateLinksPaths();
 
-            Assert.AreEqual(1, t.GetLink("L1").path.Count);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(1, t.GetLink("L1").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").mainPath[0].destination);
 
-            Assert.AreEqual(2, t.GetLink("L2").path.Count);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L2").path[0].source);
-            Assert.AreEqual(t.GetDevice("D3"), t.GetLink("L2").path[0].destination);
-            Assert.AreEqual(t.GetDevice("D3"), t.GetLink("L2").path[1].source);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").path[1].destination);
+            Assert.AreEqual(2, t.GetLink("L2").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L2").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D3"), t.GetLink("L2").mainPath[0].destination);
+            Assert.AreEqual(t.GetDevice("D3"), t.GetLink("L2").mainPath[1].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").mainPath[1].destination);
         }
 
         public void TwoWayPathFind()
@@ -83,13 +83,13 @@ namespace LinkAllocatorTests
             t.AddLink("L1", "D1", "D2", 10);
             t.AddLink("L2", "D2", "D1", 10);
 
-            Assert.AreEqual(1, t.GetLink("L1").path.Count);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(1, t.GetLink("L1").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").mainPath[0].destination);
 
-            Assert.AreEqual(1, t.GetLink("L2").path.Count);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").path[0].source);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L2").path[0].destination);
+            Assert.AreEqual(1, t.GetLink("L2").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L2").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L2").mainPath[0].destination);
         }
 
         [TestMethod]
@@ -107,9 +107,9 @@ namespace LinkAllocatorTests
             t.AllocateLinksPaths();
             t.AllocateSlots();
 
-            Assert.AreEqual(1, t.GetLink("L1").path.Count);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(1, t.GetLink("L1").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").mainPath[0].destination);
             Assert.AreEqual(1, t.GetConnection("C1").slots.Count);
             Assert.AreEqual(t.GetLink("L1"), t.GetConnection("C1").slots[0].slotOWner);
         }
@@ -136,9 +136,9 @@ namespace LinkAllocatorTests
             t.AllocateLinksPaths();
             t.AllocateSlots();
 
-            Assert.AreEqual(1, t.GetLink("L1").path.Count);
-            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").path[0].source);
-            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").path[0].destination);
+            Assert.AreEqual(1, t.GetLink("L1").mainPath.Count);
+            Assert.AreEqual(t.GetDevice("D1"), t.GetLink("L1").mainPath[0].source);
+            Assert.AreEqual(t.GetDevice("D2"), t.GetLink("L1").mainPath[0].destination);
             Assert.AreEqual(8, t.GetConnection("C1").slots.Count);
             Assert.AreEqual(t.GetLink("L1"), t.GetConnection("C1").slots[0].slotOWner);
             Assert.AreEqual(t.GetLink("L2"), t.GetConnection("C1").slots[1].slotOWner);

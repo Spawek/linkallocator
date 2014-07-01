@@ -19,7 +19,7 @@ namespace LinkAllocator
     }
     /// <summary>
     /// TODO:
-    ///     - namy receivers/transmitters (find path from next device to first path)
+    ///     - many receivers/transmitters (find path from next device to first path)
     ///     - fix empty list returing bug in better way (nicer)
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     /// </summary>
@@ -113,7 +113,7 @@ namespace LinkAllocator
             if (lhs.capacityNeeded > rhs.capacityNeeded) return -1;
             if (lhs.capacityNeeded < rhs.capacityNeeded) return 1;
 
-            return String.Compare(lhs.dst.name, rhs.dst.name);
+            return String.Compare(lhs.mainDestination.name, rhs.mainDestination.name);
         }
 
         public void AllocateLinksPaths()
@@ -129,18 +129,18 @@ namespace LinkAllocator
 
         private void AllocateLinkPath(Link link)
         {
-            CreateMarksWithBFSForLink(link);
+            CreateMarksWithBFSForLinkDestination(link);
             FindShortestPathAndAllocateResourcesForLink(link);
-            ValidateLinkPath(link);
+            ValidateLinkMainPath(link);
         }
 
-        private void ValidateLinkPath(Link link)
+        private void ValidateLinkMainPath(Link link)
         {
-            if (link.path.Count == 0)
+            if (link.mainPath.Count == 0)
                 throw new PathValidationException("Path size is 0!");
-            if (link.path[0].source != link.src)
+            if (link.mainPath[0].source != link.mainSource)
                 throw new PathValidationException("Path source is wrong!");
-            if (link.path[link.path.Count - 1].destination != link.dst)
+            if (link.mainPath[link.mainPath.Count - 1].destination != link.mainDestination)
                 throw new PathValidationException("Path destination is wrong!");
             CheckPathConsistency(link);
             CheckIfLinkIsAllocatedOnAllItsPathConnections(link);
@@ -148,24 +148,24 @@ namespace LinkAllocator
 
         private static void CheckIfLinkIsAllocatedOnAllItsPathConnections(Link link)
         {
-            if (!link.path.All(x => x.IsLinkAllocated(link)))
+            if (!link.mainPath.All(x => x.IsLinkAllocated(link)))
                 throw new PathValidationException("Path is not allocated on all its connections!");
         }
 
         private static void CheckPathConsistency(Link link)
         {
-            for (int i = 0; i < link.path.Count - 1; i++)
+            for (int i = 0; i < link.mainPath.Count - 1; i++)
             {
-                if (link.path[i].destination != link.path[i + 1].source)
+                if (link.mainPath[i].destination != link.mainPath[i + 1].source)
                     throw new PathValidationException("Path is not consistent!");
             }
         }
 
         private void FindShortestPathAndAllocateResourcesForLink(Link link)
         {
-            Device currDev = link.dst;
+            Device currDev = link.mainDestination;
             List<Connection> path = new List<Connection>();
-            while (currDev != link.src)
+            while (currDev != link.mainSource)
             {
                 Connection currPath = currDev.incomingConnections.Find(x => x.source.mark == currDev.mark - 1);
                 currPath.AllocatePath(link);
@@ -175,18 +175,18 @@ namespace LinkAllocator
             }
 
             path.Reverse();
-            link.path = path;
+            link.mainPath = path;
         }
 
-        private void CreateMarksWithBFSForLink(Link link)
+        private void CreateMarksWithBFSForLinkDestination(Link link)
         {
             const int NOT_SEEN = -1;
             const int START_POINT = 0;
 
             Queue<Device> frontier = new Queue<Device>();
-            frontier.Enqueue(link.src);
+            frontier.Enqueue(link.mainSource);
             ResetMarks(NOT_SEEN);
-            link.src.mark = START_POINT;
+            link.mainSource.mark = START_POINT;
 
             while (frontier.Count != 0)
             {
@@ -202,7 +202,7 @@ namespace LinkAllocator
                 }
             }
 
-            if (link.dst.mark == NOT_SEEN)
+            if (link.mainDestination.mark == NOT_SEEN)
                 throw new ApplicationException("Path allocation algirithm cannot allocate a link: " + link.name);
         }
 
@@ -227,7 +227,7 @@ namespace LinkAllocator
 
         private void CheckNumberOfAllocatedSlots(Link link)
         {
-            foreach (Connection connection in link.path)
+            foreach (Connection connection in link.mainPath)
             {
                 int neededSlotsOnConnection = link.capacityNeeded / connection.CapacityPerSlot;
                 int slotsAllocatedOnConnection = connection.slots.Count(x => x.slotOWner == link);
