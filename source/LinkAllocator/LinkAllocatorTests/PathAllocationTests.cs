@@ -149,5 +149,34 @@ namespace LinkAllocatorTests
 
             t.AllocateLinksPaths();
         }
+
+        /// <summary>
+        ///  D2       D3-----D4
+        ///   \      /
+        ///    \    /
+        ///     \  /
+        ///      D1
+        /// </summary>
+        [TestMethod]
+        public void FindPathWith3Destinations()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("D1");
+            t.AddDevice("D2");
+            t.AddDevice("D3");
+            t.AddDevice("D4");
+
+            t.AddConnection("C1", "D1", "D2", 10);
+            t.AddConnection("C2", "D1", "D3", 10);
+            t.AddConnection("C3", "D3", "D4", 10);
+
+            List<string> sources = new List<string>() { "D1" };
+            List<string> destinations = new List<string>() { "D2", "D3", "D4" };
+
+            t.AddLink("L1", sources, destinations, 10);
+
+            t.AllocateLinksPaths();
+        }
     }
 }
