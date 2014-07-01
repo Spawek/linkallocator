@@ -152,6 +152,8 @@ namespace LinkAllocator
         {
             AllocateMainPath(link);
             AllocateAdditionalPaths(link);
+
+            ValidateLinkPaths(link);
         }
 
         private void AllocateAdditionalPaths(Link link)
@@ -194,7 +196,7 @@ namespace LinkAllocator
                     FindShortestPathForLinkAndGivenDestination(link, source, devWithMinMark);
                 additionalSourcePath.ForEach(x => x.AllocatePath(link));
 
-                link.additionalSourcesPaths.Add(additionalSourcePath);
+                link.additionalSourcePaths.Add(additionalSourcePath);
             }
         }
 
@@ -209,20 +211,34 @@ namespace LinkAllocator
             List<Connection> path = FindShortestPathForLinkAndGivenDestination(link, link.mainSource, link.mainDestination);
             path.ForEach(x => x.AllocatePath(link));
             link.mainPath = path;
-            ValidateLinkMainPath(link);
         }
 
-        private void ValidateLinkMainPath(Link link)
+        private void ValidateLinkPaths(Link link)
         {
-            if (link.mainPath.Count == 0)
-                throw new PathValidationException("Path size is 0!");
+            VerifyPathsSize(link);
             if (link.mainPath[0].source != link.mainSource)
                 throw new PathValidationException("Path source is wrong!");
             if (link.mainPath[link.mainPath.Count - 1].destination != link.mainDestination)
                 throw new PathValidationException("Path destination is wrong!");
-            CheckMainPathConsistency(link);
+            CheckPathsConsistency(link);
             CheckIfLinkIsAllocatedOnAllItsPathConnections(link);
             CheckIfEveryConnectionInWholePathIsUnique(link);
+        }
+
+        private static void VerifyPathsSize(Link link)
+        {
+            if (link.mainPath.Count == 0)
+                throw new PathValidationException("Path size is 0!");
+
+            if (link.additionalDestinationPaths.Count != link.additionalDestinations.Count)
+                throw new PathValidationException("Not all additional destination paths are calculated");
+            if (link.additionalDestinationPaths.Any(x => x.Count == 0))
+                throw new PathValidationException("Additional destination path size is 0!");
+            
+            if (link.additionalSourcePaths.Count != link.additionalSourcePaths.Count)
+                throw new PathValidationException("Not all additional source paths are calculated");
+            if (link.additionalSourcePaths.Any(x => x.Count == 0))
+                throw new PathValidationException("Additional source path size is 0!");
         }
 
         private void CheckIfEveryConnectionInWholePathIsUnique(Link link)
@@ -237,11 +253,18 @@ namespace LinkAllocator
                 throw new PathValidationException("Path is not allocated on all its connections!");
         }
 
-        private static void CheckMainPathConsistency(Link link)
+        private static void CheckPathsConsistency(Link link)
         {
-            for (int i = 0; i < link.mainPath.Count - 1; i++)
+            CheckPathConsistency(link.mainPath);
+            link.additionalSourcePaths.ForEach(CheckPathConsistency);
+            link.additionalDestinationPaths.ForEach(CheckPathConsistency);
+        }
+
+        private static void CheckPathConsistency(List<Connection> path)
+        {
+            for (int i = 0; i < path.Count - 1; i++)
             {
-                if (link.mainPath[i].destination != link.mainPath[i + 1].source)
+                if (path[i].destination != path[i + 1].source)
                     throw new PathValidationException("Path is not consistent!");
             }
         }

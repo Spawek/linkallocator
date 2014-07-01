@@ -112,7 +112,7 @@ namespace LinkAllocatorTests
             t.AddDevice("D2");
             t.AddDevice("D3");
 
-            t.AddConnection("C1", "D1", "D2", 10);
+            t.AddConnection("C1", "D1", "D3", 10);
             t.AddConnection("C2", "D2", "D3", 10);
 
             List<string> sources = new List<string>() { "D1", "D2" };

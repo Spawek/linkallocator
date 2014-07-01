@@ -11,7 +11,7 @@ namespace LinkAllocator
         public string name; //channel?
         public Device mainSource = null;
         public List<Device> additionalSources = new List<Device>();
-        public List<List<Connection>> additionalSourcesPaths = new List<List<Connection>>();
+        public List<List<Connection>> additionalSourcePaths = new List<List<Connection>>();
         public Device mainDestination = null;
         public List<Device> additionalDestinations = new List<Device>();
         public List<List<Connection>> additionalDestinationPaths = new List<List<Connection>>();
@@ -22,7 +22,7 @@ namespace LinkAllocator
             get 
             {   
                 var wholePath = mainPath.GetRange(0, mainPath.Count);
-                additionalSourcesPaths.ForEach(x => wholePath.AddRange(x));
+                additionalSourcePaths.ForEach(x => wholePath.AddRange(x));
                 additionalDestinationPaths.ForEach(x => wholePath.AddRange(x));
 
                 return wholePath;
