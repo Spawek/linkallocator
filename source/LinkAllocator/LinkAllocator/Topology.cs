@@ -129,8 +129,8 @@ namespace LinkAllocator
 
         private void AllocateLinkPath(Link link)
         {
-            CreateMarksWithBFSForLinkDestination(link);
-            FindShortestPathAndAllocateResourcesForLink(link);
+            CreateMarksWithBFS(link, link.mainSource);
+            FindShortestPathAndAllocateResourcesForLinkAndGivenDestination(link, link.mainDestination);
             ValidateLinkMainPath(link);
         }
 
@@ -161,9 +161,9 @@ namespace LinkAllocator
             }
         }
 
-        private void FindShortestPathAndAllocateResourcesForLink(Link link)
+        private void FindShortestPathAndAllocateResourcesForLinkAndGivenDestination(Link link, Device destination)
         {
-            Device currDev = link.mainDestination;
+            Device currDev = destination;
             List<Connection> path = new List<Connection>();
             while (currDev != link.mainSource)
             {
@@ -178,7 +178,7 @@ namespace LinkAllocator
             link.mainPath = path;
         }
 
-        private void CreateMarksWithBFSForLinkDestination(Link link)
+        private void CreateMarksWithBFS(Link link, Device startPoint)
         {
             const int NOT_SEEN = -1;
             const int START_POINT = 0;
@@ -186,7 +186,7 @@ namespace LinkAllocator
             Queue<Device> frontier = new Queue<Device>();
             frontier.Enqueue(link.mainSource);
             ResetMarks(NOT_SEEN);
-            link.mainSource.mark = START_POINT;
+            startPoint.mark = START_POINT;
 
             while (frontier.Count != 0)
             {
