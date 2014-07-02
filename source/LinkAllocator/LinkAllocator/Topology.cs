@@ -133,7 +133,7 @@ namespace LinkAllocator
             if (lhs.capacityNeeded > rhs.capacityNeeded) return -1;
             if (lhs.capacityNeeded < rhs.capacityNeeded) return 1;
 
-            return String.Compare(lhs.mainDestination.name, rhs.mainDestination.name);
+            return String.CompareOrdinal(lhs.mainDestination.name, rhs.mainDestination.name);
         }
 
         public void AllocateLinksPaths()

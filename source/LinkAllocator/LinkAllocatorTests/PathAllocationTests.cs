@@ -178,5 +178,7 @@ namespace LinkAllocatorTests
 
             t.AllocateLinksPaths();
         }
+
+        //change regex (5Mhz)     (.*?) rx: \[(.*?)\] tx: \[(.*?)\]    ---->    
     }
 }

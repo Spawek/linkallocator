@@ -20,7 +20,7 @@ namespace LinkAllocator
 
         public override string ToString()
         {
-            return name;
+            return name + ": " + mark.ToString();
         }
 
     }

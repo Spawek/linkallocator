@@ -114,20 +114,23 @@ namespace LinkAllocator
         }
         public void CreateSlots()
         {
-            int minNeededCapacity = allocatedLinks.Min(x => x.capacityNeeded);
-
-            if (maxCapacity % minNeededCapacity != 0)
-                throw new ApplicationException("Cannot calculate slots number");
-
-            int slotsNumbers = maxCapacity / minNeededCapacity;
-
-            if (allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
-                throw new ApplicationException("Correct slots number cannot be calculated");
-
-            slots = new List<Slot>();
-            for (int i = 0; i < slotsNumbers; i++)
+            if (allocatedLinks.Count > 0)
             {
-                slots.Add(new Slot());
+                int minNeededCapacity = allocatedLinks.Min(x => x.capacityNeeded);
+
+                if (maxCapacity % minNeededCapacity != 0)
+                    throw new ApplicationException("Cannot calculate slots number");
+
+                int slotsNumbers = maxCapacity / minNeededCapacity;
+
+                if (allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
+                    throw new ApplicationException("Correct slots number cannot be calculated");
+
+                slots = new List<Slot>();
+                for (int i = 0; i < slotsNumbers; i++)
+                {
+                    slots.Add(new Slot());
+                }
             }
         }
 

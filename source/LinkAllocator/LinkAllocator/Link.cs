@@ -46,6 +46,8 @@ namespace LinkAllocator
         }
         public List<int> availableBegins = null;
         public int maxCapacityOnPath = -1;
+        public const int NOT_ALLOCATED = -666;
+        public int allocatedBeginPos = NOT_ALLOCATED;
 
         public Link(string _name, Device _src, Device _dst, int _capacityNeeded)
         {
@@ -101,6 +103,7 @@ namespace LinkAllocator
         private void AllocateSlot(int beginPos)
         {
             mainPath.ForEach(x => x.AllocateSlot(this, beginPos));
+            allocatedBeginPos = beginPos;
         }
 
         private bool CanAllocateSlot(int beginPos)
@@ -111,6 +114,7 @@ namespace LinkAllocator
         public void DeallocateSlot(int beginPost)
         {
             mainPath.ForEach(x => x.DeallocateSlot(this, beginPost));
+            allocatedBeginPos = NOT_ALLOCATED;
         }
         
         public override string ToString()
