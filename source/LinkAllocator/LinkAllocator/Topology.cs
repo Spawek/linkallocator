@@ -19,7 +19,7 @@ namespace LinkAllocator
     }
     /// <summary>
     /// TODO:
-    ///     - add expects to tests for multi receiver/transmitter
+    ///     - add routings generation
     ///     - fix empty list returing bug in better way (nicer)
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     ///     - fixed slot constraint

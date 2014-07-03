@@ -24,5 +24,14 @@ namespace LinkAllocatorTests
             t.AllocateLinksPaths();
             t.AllocateSlots();
         }
+
+        [TestMethod]
+        public void L222_4TX_4RX_20MHz_FSMF_2FBBA_3FZNI_Configuration()
+        {
+            Topology t = SyslogParser.CreateTopology("../../../../Configurations/L222_4TX_4RX_20MHz_FSMF_2FBBA_3FZNI_Configuration.log");
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+        }
     }
 }
