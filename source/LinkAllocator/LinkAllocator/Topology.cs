@@ -23,7 +23,6 @@ namespace LinkAllocator
     ///     - fix empty list returing bug in better way (nicer)
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     ///     - fixed slot constraint
-    ///     - forbidden slot constraint - remember to decrease link capacity after applying
     ///     - fixed path constraint (has to go throught?)
     /// </summary>
     public class Topology
@@ -140,6 +139,12 @@ namespace LinkAllocator
         {
             Device dev = GetDevice(deviceName);
             dev.AddForbiddenSlotConstraint(new ForbiddenSlotConstraint(constraintName, index, modulo));
+        }
+
+        public void AddFixedSlotConstraint(string linkName, int index, int modulo)
+        {
+            Link link = GetLink(linkName);
+            link.SetFixedSlotConstraint(new FixedSlotConstraint(index, modulo));
         }
 
         public void AllocateLinksPaths()
@@ -410,7 +415,6 @@ namespace LinkAllocator
             }
         }
 
-        private int backCounter = 0;
         private bool TryAllocateLinks(List<Link> links)
         {
             if (links.Count == 0)

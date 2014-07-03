@@ -48,7 +48,8 @@ namespace LinkAllocator
         public int modulo = -777;
         public int maxCapacityOnPath = -1;
         public const int NOT_ALLOCATED = -666;
-        public int allocatedBeginPos = NOT_ALLOCATED;
+        public int allocatedSlot = NOT_ALLOCATED;
+        public FixedSlotConstraint fixedSlotConstraint = null;
 
         public Link(string _name, Device _src, Device _dst, int _capacityNeeded)
         {
@@ -83,8 +84,20 @@ namespace LinkAllocator
             if (mainPath.Count == 0) throw new ApplicationException("empty path!");
 
             maxCapacityOnPath = mainPath.Max(x => x.maxCapacity);
-            modulo = maxCapacityOnPath / capacityNeeded;
-            availableSlots = Enumerable.Range(0, modulo).ToList();
+            if (fixedSlotConstraint == null)
+            {
+                modulo = maxCapacityOnPath / capacityNeeded;
+                availableSlots = Enumerable.Range(0, modulo).ToList();
+            }
+            else // constraint has to be applied
+            {
+                int maxCapacityOnConstraint = capacityNeeded * fixedSlotConstraint.modulo;
+                if (maxCapacityOnConstraint > maxCapacityOnPath)
+                    throw new ApplicationException("it shouldnt be like that... just check it");
+                modulo = fixedSlotConstraint.modulo;
+                int numberOfAvailableSlots = maxCapacityOnPath / maxCapacityOnConstraint;
+                availableSlots = Enumerable.Range(fixedSlotConstraint.index, numberOfAvailableSlots).ToList(); 
+            }
         }
 
         public bool TryAllocateSlot(int slot)
@@ -101,7 +114,7 @@ namespace LinkAllocator
         private void AllocateSlot(int slot)
         {
             wholePath.ForEach(x => x.AllocateSlot(this, slot));
-            allocatedBeginPos = slot;
+            allocatedSlot = slot;
         }
 
         private bool CanAllocateSlot(int slot)
@@ -112,12 +125,20 @@ namespace LinkAllocator
         public void DeallocateSlot(int slot)
         {
             wholePath.ForEach(x => x.DeallocateSlot(this, slot));
-            allocatedBeginPos = NOT_ALLOCATED;
+            allocatedSlot = NOT_ALLOCATED;
         }
         
         public override string ToString()
         {
             return name;
+        }
+
+        public void SetFixedSlotConstraint(FixedSlotConstraint constraint)
+        {
+            if (fixedSlotConstraint != null)
+                throw new ApplicationException("fixed slot constraint cannot be applied twice!");
+
+            fixedSlotConstraint = constraint;
         }
     }
 }
