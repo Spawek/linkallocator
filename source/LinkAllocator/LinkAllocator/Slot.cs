@@ -15,6 +15,7 @@ namespace LinkAllocator
         /// (and this class takes care of it)
         /// </summary>
         public Link slotOWner { get; private set; }
+        public string constraintName { get; private set; }
 
         public enum State
         {
@@ -53,12 +54,13 @@ namespace LinkAllocator
             state = State.FREE;
         }
 
-        public void Forbid()
+        public void Forbid(string _constraintName)
         {
             if (state != State.FREE)
                 throw new ApplicationException("Cannot forbid not free slot");
 
             state = State.FORBIDDEN;
+            constraintName = _constraintName;
         }
 
         public override string ToString()

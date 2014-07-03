@@ -23,6 +23,7 @@ namespace LinkAllocator
         public Device destination;
         public List<Slot> slots = null;
         private List<Link> allocatedLinks = new List<Link>();
+        private List<ForbiddenSlotConstraint> forbiddenSlotConstraints = new List<ForbiddenSlotConstraint>();
 
         public bool IsLinkAllocated(Link link)
         {
@@ -108,16 +109,49 @@ namespace LinkAllocator
                 if (maxCapacity % minNeededCapacity != 0)
                     throw new ApplicationException("Cannot calculate slots number");
 
-                int slotsNumbers = maxCapacity / minNeededCapacity;
-
                 if (allocatedLinks.Any(x => maxCapacity % x.capacityNeeded != 0))
                     throw new ApplicationException("Correct slots number cannot be calculated");
 
-                slots = new List<Slot>();
-                for (int i = 0; i < slotsNumbers; i++)
+                int slotsNumberNeededForTheSmallestLink = maxCapacity / minNeededCapacity;
+                int slotsNumberNeeded;
+                if(forbiddenSlotConstraints.Count != 0)
                 {
-                    slots.Add(new Slot());
+                    int slotsNumberNeededForConstraints = forbiddenSlotConstraints.Max(x => x.modulo);
+                    slotsNumberNeeded = Math.Max(slotsNumberNeededForTheSmallestLink, slotsNumberNeededForConstraints);
                 }
+                else
+                {
+                    slotsNumberNeeded = slotsNumberNeededForTheSmallestLink;
+                }
+
+                CreateSlots(slotsNumberNeeded);
+                forbiddenSlotConstraints.ForEach(x => ApplyConstraint(x));
+            }
+        }
+
+        private void ApplyConstraint(ForbiddenSlotConstraint constraint)
+        {
+            if (slots == null)
+                throw new ApplicationException("Cannot apply constraint when slots are not created");
+            if (slots.Count == 0)
+                throw new ApplicationException("Cannot apply constraint when slots are empty");
+            if (slots.Count < constraint.index)
+                throw new ApplicationException("Slots number cannot be smaller than constraint index");
+            if (slots.Count < constraint.modulo)
+                throw new ApplicationException("Slots number cannot be smaller than constraint modulo");
+
+            for (int i = constraint.index; i < slots.Count; i += constraint.modulo)
+            {
+                slots[i].Forbid(constraint.name);
+            }
+        }
+
+        private void CreateSlots(int slotsNumber)
+        {
+            slots = new List<Slot>();
+            for (int i = 0; i < slotsNumber; i++)
+            {
+                slots.Add(new Slot());
             }
         }
 
@@ -129,5 +163,17 @@ namespace LinkAllocator
         {
             return name;
         }
+
+        public void AddForbiddenSlotConstraint(ForbiddenSlotConstraint constraint)
+        {
+            if (currCapacity < maxCapacity / constraint.modulo)
+                throw new ApplicationException("more constraint cannot be applied to this device");
+            if (forbiddenSlotConstraints.Any(x => x.index == constraint.index && x.modulo == constraint.modulo))
+                throw new ApplicationException("this constraint alearedy exists in current device");
+            currCapacity -= maxCapacity / constraint.modulo;
+
+            forbiddenSlotConstraints.Add(constraint);
+        }
+    
     }
 }

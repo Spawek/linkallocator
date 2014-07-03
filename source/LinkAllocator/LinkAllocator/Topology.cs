@@ -136,6 +136,12 @@ namespace LinkAllocator
             return String.CompareOrdinal(lhs.mainDestination.name, rhs.mainDestination.name);
         }
 
+        public void AddForbiddenSlotConstraint(string constraintName, string deviceName, int index, int modulo)
+        {
+            Device dev = GetDevice(deviceName);
+            dev.AddForbiddenSlotConstraint(new ForbiddenSlotConstraint(constraintName, index, modulo));
+        }
+
         public void AllocateLinksPaths()
         {
             links.Sort(LinkCmp);

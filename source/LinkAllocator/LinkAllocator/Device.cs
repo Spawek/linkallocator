@@ -18,10 +18,15 @@ namespace LinkAllocator
             name = _name;
         }
 
+        public void AddForbiddenSlotConstraint(ForbiddenSlotConstraint constraint)
+        {
+            incomingConnections.ForEach(x => x.AddForbiddenSlotConstraint(constraint));
+            outgoingConnections.ForEach(x => x.AddForbiddenSlotConstraint(constraint));
+        }
+
         public override string ToString()
         {
             return name + ": " + mark.ToString();
         }
-
     }
 }

@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Connection.cs" />
     <Compile Include="Device.cs" />
+    <Compile Include="ForbiddenSlotConstraint.cs" />
     <Compile Include="Link.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
