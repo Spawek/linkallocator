@@ -33,5 +33,14 @@ namespace LinkAllocatorTests
             t.AllocateLinksPaths();
             t.AllocateSlots();
         }
+
+        [TestMethod]
+        public void L111_5_10_20Mhz_Configuration()
+        {
+            Topology t = SyslogParser.CreateTopology("../../../../Configurations/L111_5_10_20Mhz.log");
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+        }
     }
 }

@@ -44,7 +44,8 @@ namespace LinkAllocator
                 return devicesOnPath;
             }
         }
-        public List<int> availableBegins = null;
+        public List<int> availableSlots = null;
+        public int modulo = -777;
         public int maxCapacityOnPath = -1;
         public const int NOT_ALLOCATED = -666;
         public int allocatedBeginPos = NOT_ALLOCATED;
@@ -82,38 +83,35 @@ namespace LinkAllocator
             if (mainPath.Count == 0) throw new ApplicationException("empty path!");
 
             maxCapacityOnPath = mainPath.Max(x => x.maxCapacity);
-
-            List<int> availableBeginSlots = Enumerable.Range(0, maxCapacityOnPath / capacityNeeded).ToList();
-
-            //when there are 4 slots of size 10 and link size will be 10, available begins will be 0,10,20,30
-            availableBegins = availableBeginSlots.ConvertAll(x => x * capacityNeeded);
+            modulo = maxCapacityOnPath / capacityNeeded;
+            availableSlots = Enumerable.Range(0, modulo).ToList();
         }
 
-        public bool TryAllocateSlot(int beginPos)
+        public bool TryAllocateSlot(int slot)
         {
-            if (CanAllocateSlot(beginPos))
+            if (CanAllocateSlot(slot))
             {
-                AllocateSlot(beginPos);
+                AllocateSlot(slot);
                 return true;
             }
 
             return false;
         }
 
-        private void AllocateSlot(int beginPos)
+        private void AllocateSlot(int slot)
         {
-            mainPath.ForEach(x => x.AllocateSlot(this, beginPos));
-            allocatedBeginPos = beginPos;
+            wholePath.ForEach(x => x.AllocateSlot(this, slot));
+            allocatedBeginPos = slot;
         }
 
-        private bool CanAllocateSlot(int beginPos)
+        private bool CanAllocateSlot(int slot)
         {
-            return mainPath.All(x => x.CanAllocateSlot(this, beginPos));
+            return wholePath.All(x => x.CanAllocateSlot(this, slot));
         }
 
-        public void DeallocateSlot(int beginPost)
+        public void DeallocateSlot(int slot)
         {
-            mainPath.ForEach(x => x.DeallocateSlot(this, beginPost));
+            wholePath.ForEach(x => x.DeallocateSlot(this, slot));
             allocatedBeginPos = NOT_ALLOCATED;
         }
         

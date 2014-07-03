@@ -170,6 +170,52 @@ namespace LinkAllocatorTests
             t.AllocateSlots();
         }
 
+        /// <summary>
+        ///      I1
+        ///      |
+        ///      |8x
+        ///   1x |    1x
+        /// O1---D1------O4
+        ///     /  \
+        /// 4x /    \ 2x
+        ///   /      \
+        ///  O2       O3
+        /// </summary>
+        [TestMethod]
+        public void SlotAllocationWithMultiplexing_ComplexCase()
+        {
+            Topology t = new Topology();
+
+            t.AddDevice("O1");
+            t.AddDevice("O2");
+            t.AddDevice("O3");
+            t.AddDevice("O4");
+            t.AddDevice("D1");
+            t.AddDevice("I1");
+
+            t.AddConnection("C1", "D1", "O1", 10);
+            t.AddConnection("C2", "D1", "O2", 40);
+            t.AddConnection("C3", "D1", "O3", 20);
+            t.AddConnection("C4", "D1", "O4", 10);
+            t.AddConnection("C5", "I1", "D1", 80);
+
+            t.AddLink("L1", "I1", "O1", 10);
+                                   
+            t.AddLink("L2", "I1", "O2", 20);
+            t.AddLink("L3", "I1", "O2", 10);
+            t.AddLink("L4", "I1", "O2", 10);
+                                   
+            t.AddLink("L5", "I1", "O3", 5);
+            t.AddLink("L6", "I1", "O3", 5);
+            t.AddLink("L7", "I1", "O3", 10);
+                                   
+            t.AddLink("L8", "I1", "O4", 5);
+            t.AddLink("L9", "I1", "O4", 5);
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+        }
+
         public void SlotAllocationWithDemultiplexing_EvenMoreComplexCase()
         {
             Topology t = new Topology();

@@ -54,39 +54,26 @@ namespace LinkAllocator
         /// 
         /// </summary>
         /// <param name="link"></param>
-        /// <param name="linkBeginPos"></param>
+        /// <param name="slot"></param>
         /// <returns>EMPTY LIST MEANS IMPOSSIBLE - BUGFIX</returns>
-        public List<int> GetNeededSlotsForLinkAndBeginPosition(Link link, int linkBeginPos)
+        public List<int> GetNeededSlotsForLinkAndBeginPosition(Link link, int slot)
         {
-            int beginPos = -1;
-            if (linkBeginPos == 0)
-            {
-                beginPos = 0;
-            }
-            else
-            {
-                beginPos = linkBeginPos / (link.maxCapacityOnPath / maxCapacity);
-            }
+            int currSlot = slot * maxCapacity / link.maxCapacityOnPath;
+            int currModulo = slots.Count;
+            int currConnectionModuloForLink = maxCapacity / link.capacityNeeded;
+            int noOfAllocatedSlots = currModulo / currConnectionModuloForLink;
 
-            int firstSlot = beginPos / CapacityPerSlot;
-            int noOfSlotsNeeded = link.capacityNeeded / CapacityPerSlot;
-
-            /// BUGFIX: it can return slots that not exists when there are more than 1 slots needed and
-            ///      it tries to allocated on last slot (coz before ones failed)
-            if (firstSlot + noOfSlotsNeeded > slots.Count)
+            List<int> neededSlots = new List<int>();
+            for (int i = currSlot; i < currModulo; i += currConnectionModuloForLink)
             {
-                return new List<int>();
+                neededSlots.Add(i);
             }
-
-            List<int> neededSlots = Enumerable.Range(firstSlot, noOfSlotsNeeded).ToList();
 
             return neededSlots;
         }
-        public bool CanAllocateSlot(Link link, int linkBeginPos)
+        public bool CanAllocateSlot(Link link, int slot)
         {
-            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, linkBeginPos);
-
-            if (neededSlots.Count == 0) return false; //BUGFIX
+            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, slot);
 
             return CanAllocateSlots(neededSlots);
         }
@@ -94,9 +81,9 @@ namespace LinkAllocator
         {
             return slotsNumbers.All(x => slots[x].IsAvailable());
         }
-        public void AllocateSlot(Link link, int beginPos)
+        public void AllocateSlot(Link link, int slot)
         {
-            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, beginPos);
+            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, slot);
 
             foreach(int slotNo in neededSlots) //TODO: refactor - use .foreach
             {
@@ -106,9 +93,9 @@ namespace LinkAllocator
                 slots[slotNo].Allocate(link);
             }
         }
-        public void DeallocateSlot(Link link, int beginPos)
+        public void DeallocateSlot(Link link, int slot)
         {
-            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, beginPos);
+            List<int> neededSlots = GetNeededSlotsForLinkAndBeginPosition(link, slot);
 
             neededSlots.ForEach(x => slots[x].Deallocate());
         }
