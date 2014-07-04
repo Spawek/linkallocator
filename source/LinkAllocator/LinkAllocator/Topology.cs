@@ -130,7 +130,7 @@ namespace LinkAllocator
             if (lhs.capacityNeeded > rhs.capacityNeeded) return -1;
             if (lhs.capacityNeeded < rhs.capacityNeeded) return 1;
 
-            return String.CompareOrdinal(lhs.mainDestination.name, rhs.mainDestination.name);
+            return String.CompareOrdinal(rhs.mainDestination.name, lhs.mainDestination.name);
         }
 
         public void AddForbiddenSlotConstraint(string constraintName, string deviceName, int index, int modulo)
@@ -149,6 +149,73 @@ namespace LinkAllocator
         {
             links.Sort(LinkCmp);
             links.ForEach(AllocateLinkPath);
+        }
+
+        private string GetParent(string name)
+        {
+            return name.Substring(0, name.LastIndexOf("/"));
+        }
+
+        public RoutingTable CalculateRoutingTableForDevice(string deviceName)
+        {
+            RoutingTable rt = new RoutingTable(deviceName);
+
+            List<Device> associatedDevices = devices.Where(x => GetParent(x.name) == deviceName).ToList();
+            if (associatedDevices.Capacity == 0)
+                throw new ApplicationException("no devices are associated to routing table!");
+
+            List<Connection> associatedConnections = connections.Where(
+                x => associatedDevices.Contains(x.source) && associatedDevices.Contains(x.destination)).ToList();
+
+            foreach (Connection conn in associatedConnections)
+            {
+                if (conn.slots == null) continue;
+
+                List<Connection> inputConnections =
+                    conn.source.incomingConnections.FindAll(x => !associatedConnections.Contains(x));
+                if (inputConnections.Count != 1)
+                    throw new ApplicationException("topology is broken!");
+                Connection inputConnection = inputConnections[0];
+
+                List<Connection> outputConnections =
+                    conn.destination.outgoingConnections.FindAll(x => !associatedConnections.Contains(x));
+                if (outputConnections.Count != 1)
+                    throw new ApplicationException("topology is broken!");
+                Connection outputConnection = outputConnections[0];
+
+                //TODO:make set
+                List<Link> linkAllocatedOnCurrConnection = new List<Link>();
+                
+                foreach (Slot takenSlot in conn.slots.Where(x => x.state == Slot.State.TAKEN))
+                {
+                    if (!linkAllocatedOnCurrConnection.Contains(takenSlot.slotOWner))
+                        linkAllocatedOnCurrConnection.Add(takenSlot.slotOWner);               
+                }
+
+                foreach (Link link in linkAllocatedOnCurrConnection)
+                {
+                    RoutingEntity re = new RoutingEntity();
+                    re.linkName = link.name;
+                    re.deviceConnectedOnOutput = outputConnection.destination.name;
+                    re.inputDevice = conn.source.name;
+                    re.outputDevice = conn.destination.name;
+
+                    int firstIndexOnInput = inputConnection.slots.FindIndex(x => x.slotOWner == link);
+                    int allocatedSlotsCountOnInput = inputConnection.slots.Count(x => x.slotOWner == link);
+                    re.inputIndex = firstIndexOnInput;
+                    re.inputModulo = inputConnection.slots.Count / allocatedSlotsCountOnInput;
+
+                    int firstIndexOnOutput = outputConnection.slots.FindIndex(x => x.slotOWner == link);
+                    int allocatedSlotsCountOnOuput = outputConnection.slots.Count(x => x.slotOWner == link);
+                    re.outputIndex = firstIndexOnOutput;
+                    re.outputModulo = outputConnection.slots.Count / allocatedSlotsCountOnOuput;
+
+                    rt.routingEntities.Add(re);
+                }
+
+            }
+
+            return rt;
         }
 
         private void ResetMarks(int val)
@@ -389,7 +456,7 @@ namespace LinkAllocator
         public void AllocateSlots()
         {
             connections.ForEach(x => x.CreateSlots());
-            links.ForEach(x => x.FindAvailableBeginPositions());
+            links.ForEach(x => x.FindAvailableSlots());
 
             if (!TryAllocateLinks(links))
                 throw new ApplicationException("Cannot allocate slots!");

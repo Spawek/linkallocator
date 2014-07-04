@@ -69,10 +69,10 @@ namespace LinkAllocatorTests
         ///    O1
         ///     |
         ///     | 8x
-        ///     |     2x
+        ///     |     4x
         ///    D1--------I2
         ///     |
-        ///     | 2x
+        ///     | 4x
         ///     |
         ///    I1
         /// </summary>
@@ -86,8 +86,8 @@ namespace LinkAllocatorTests
             t.AddDevice("I1");
             t.AddDevice("I2");
 
-            t.AddConnection("C1", "I1", "D1", 20);
-            t.AddConnection("C2", "I2", "D1", 20);
+            t.AddConnection("C1", "I1", "D1", 40);
+            t.AddConnection("C2", "I2", "D1", 40);
             t.AddConnection("C3", "D1", "O1", 80);
 
             t.AddLink("L1", "I1", "O1", 10);
@@ -98,6 +98,9 @@ namespace LinkAllocatorTests
 
             t.AllocateLinksPaths();
             t.AllocateSlots();
+
+            Assert.AreEqual("L1", t.GetConnection("C3").slots[6].slotOWner.name);
+            Assert.AreEqual("L2", t.GetConnection("C3").slots[7].slotOWner.name);
         }
     }
 }

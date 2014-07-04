@@ -42,5 +42,17 @@ namespace LinkAllocatorTests
             t.AllocateLinksPaths();
             t.AllocateSlots();
         }
+
+        [TestMethod]
+        public void L111_5_10_20Mhz_Configuration_WithRoutings()
+        {
+            Topology t = SyslogParser.CreateTopology("../../../../Configurations/L111_5_10_20Mhz.log");
+
+            t.AllocateLinksPaths();
+            t.AllocateSlots();
+
+            RoutingTable rt = t.CalculateRoutingTableForDevice("/MRBTS-1/RAT-1/EQM_L-1/SMOD_L-1/CCU_L-1/BBSWITCH_L-1");
+
+        }
     }
 }

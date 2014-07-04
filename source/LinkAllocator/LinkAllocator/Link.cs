@@ -79,7 +79,7 @@ namespace LinkAllocator
             capacityNeeded = _capacityNeeded;
         }
 
-        public void FindAvailableBeginPositions()
+        public void FindAvailableSlots()
         {
             if (mainPath.Count == 0) throw new ApplicationException("empty path!");
 
@@ -96,7 +96,8 @@ namespace LinkAllocator
                     throw new ApplicationException("it shouldnt be like that... just check it");
                 modulo = fixedSlotConstraint.modulo;
                 int numberOfAvailableSlots = maxCapacityOnPath / maxCapacityOnConstraint;
-                availableSlots = Enumerable.Range(fixedSlotConstraint.index, numberOfAvailableSlots).ToList(); 
+                int firstSlotMoveFactor = maxCapacityOnPath / maxCapacityOnConstraint;
+                availableSlots = Enumerable.Range(fixedSlotConstraint.index * firstSlotMoveFactor, numberOfAvailableSlots).ToList(); 
             }
         }
 
