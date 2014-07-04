@@ -108,8 +108,8 @@ namespace LinkAllocatorTests
             //LOGICAL LINKS
             foreach (var linkData in linksData)
             {
-                t.AddLink(linkData[0], linkData[1].Substring(1, linkData[1].Length - 2),
-                    linkData[2].Substring(1, linkData[2].Length - 2), Convert.ToInt32(linkData[3]));
+                t.AddLink(linkData[0], linkData[2].Substring(1, linkData[2].Length - 2),
+                    linkData[1].Substring(1, linkData[1].Length - 2), Convert.ToInt32(linkData[3]));
             }
 
             return t;

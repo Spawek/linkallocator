@@ -19,7 +19,6 @@ namespace LinkAllocator
     }
     /// <summary>
     /// TODO:
-    ///     - add routings generation
     ///     - 15MHz - split to 3 links with different names (/LN-1, LN-2, LN-3)
     ///     - fixed path constraint (has to go throught?)
     /// </summary>
@@ -204,11 +203,15 @@ namespace LinkAllocator
                     int allocatedSlotsCountOnInput = inputConnection.slots.Count(x => x.slotOWner == link);
                     re.inputIndex = firstIndexOnInput;
                     re.inputModulo = inputConnection.slots.Count / allocatedSlotsCountOnInput;
+                    if (re.inputIndex >= re.inputModulo)
+                        throw new ApplicationException("index should be lower than modulo!");
 
                     int firstIndexOnOutput = outputConnection.slots.FindIndex(x => x.slotOWner == link);
                     int allocatedSlotsCountOnOuput = outputConnection.slots.Count(x => x.slotOWner == link);
                     re.outputIndex = firstIndexOnOutput;
                     re.outputModulo = outputConnection.slots.Count / allocatedSlotsCountOnOuput;
+                    if (re.outputIndex >= re.outputModulo)
+                        throw new ApplicationException("index should be lower than modulo!");
 
                     rt.routingEntities.Add(re);
                 }
