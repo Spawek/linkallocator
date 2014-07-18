@@ -28,7 +28,7 @@ namespace LinkAllocator
         public List<Link> links = new List<Link>();
         public List<Connection> connections = new List<Connection>();
 
-        private const int NOT_SEEN = -1;
+        private const int NOT_SEEN = int.MaxValue;
         private const int START_POINT = 0;
 
         public Device GetDevice(string name)
@@ -160,7 +160,7 @@ namespace LinkAllocator
             RoutingTable rt = new RoutingTable(deviceName);
 
             List<Device> associatedDevices = devices.Where(x => GetParent(x.name) == deviceName).ToList();
-            if (associatedDevices.Capacity == 0)
+            if (associatedDevices.Count == 0)
                 throw new ApplicationException("no devices are associated to routing table!");
 
             List<Connection> associatedConnections = connections.Where(
@@ -245,7 +245,7 @@ namespace LinkAllocator
             foreach (Device destination in link.additionalDestinations)
             {
                 CreateMarksWithReversedBFS(link, destination);
-                int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN) ? x.mark : int.MaxValue);
+                int minMark = link.devicesOnWholePath.Min(x => x.mark);
                 if (minMark == int.MaxValue)
                     throw new ApplicationException("Path allocation algorithm cannot allocate additional destination for link: " + link.name);
 
@@ -264,7 +264,7 @@ namespace LinkAllocator
             foreach (Device source in link.additionalSources)
             {
                 CreateMarksWithBFS(link, source);
-                int minMark = link.devicesOnWholePath.Min(x => (x.mark != NOT_SEEN) ? x.mark : int.MaxValue);
+                int minMark = link.devicesOnWholePath.Min(x => x.mark);
                 if (minMark == int.MaxValue)
                     throw new ApplicationException("Path allocation algoritithm cannot allocate additional source for link: " + link.name);
 
@@ -377,6 +377,8 @@ namespace LinkAllocator
             while (currDev != source)
             {
                 Connection currPath = currDev.outgoingConnections.Find(x => x.destination.mark == currDev.mark - 1);
+                if (currPath == null)
+                    throw new ApplicationException("dsadsads");
                 path.Add(currPath);
 
                 currDev = currPath.destination;

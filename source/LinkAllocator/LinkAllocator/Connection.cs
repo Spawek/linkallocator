@@ -148,6 +148,9 @@ namespace LinkAllocator
 
         private void CreateSlots(int slotsNumber)
         {
+            if (slots != null && slots.Count != 0)
+                throw new ApplicationException("slots container should be empty when creating slots");
+
             slots = new List<Slot>();
             for (int i = 0; i < slotsNumber; i++)
             {
@@ -157,7 +160,7 @@ namespace LinkAllocator
 
         private int currCapacity;
         public readonly int maxCapacity;
-        public int CapacityPerSlot { get { return maxCapacity / slots.Count(); } }
+        public int CapacityPerSlot { get { return maxCapacity / slots.Count; } }
 
         public override string ToString()
         {
